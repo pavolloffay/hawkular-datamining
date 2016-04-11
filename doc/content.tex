@@ -98,6 +98,8 @@ Qualitative methods are mainly based on the opinion of the subject and are used
 when past data are not available, hence not suitable for this project. 
 If there are past data available, quantitative forecasting methods are more suitable. 
 
+TODO mention that we talk only about models which makes sense to use in our environment.
+
     %%%%%%%%
     \section{Simple quantitative methods}
     Following methods are the simples forecasting quantitative models. They can be used on
@@ -220,6 +222,73 @@ If there are past data available, quantitative forecasting methods are more suit
     unknown, therefore period identification should be also implemented.
     
     %%%%%%%%
+    \section{Box\,--\,Jenkins Methodology (ARIMA)}
+    Models from Box\,--\,Jenkins methodology are the most widely used in time series
+    analysis specially for econometric data. This methodology is based on analysis of autocorrelation (ACF)
+    and partial autocorrelation (PACF) functions.
+    
+    The most generic model is ARIMA(p, d, q). It combines together autoregressive, integrated and
+    moving average models. An autoregressive model (AR) consist of sum of weighed lagged observations. It is listed
+    in \ref{ar_model}. The order of this model is defined by $p$ and can be determined from PACF function \cite{cipra}.
+    A moving average model (MA) is sum of weighted errors of order $q$. The order of this part can be
+    determined from ACF function \cite{cipra}. The last part of the model is used when a time series is non stationary.
+    There are several ways how to make a  particular time series stationary. Box Jenkins methodology uses
+    differencing\,--\,integration part. The order if differencing original series is denoted by $d$ letter. Usually
+    first order differences are enough to make time series stationary.
+
+    Parameters of the model, including AR and MA part can by estimated by non-linear
+    least squares or maximum likelyhood estimation \cite{brockwell}. For successful estimation a certain number of
+    historical points needs to be available. In \cite{cipra} minimal training size is set to at least fifty
+    observations.
+
+    \begin{eqnarray} \label{ar_model}
+        y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \epsilon_t \\ \nonumber
+        \epsilon_t \overset{iid}{\sim} N(0, \sigma^2)
+    \end{eqnarray}
+
+    Moving averages model should not be confused with simple moving average which is
+    used for trend estimation. In moving average model MA(q) the current value is
+    a regression against white noise of prior values of the series \cite{wiki-ma-model}. A random noise from
+    each point is assumed to come from the same distribution which typically is 
+    a normal distribution. Model of the order $q$ is listed in \ref{ma_model}.
+
+    \begin{eqnarray} \label{ma_model}
+        y_t = \theta_1 \epsilon_{t-1} + \theta_2 \epsilon_{t-2} + \dots + \theta_p y_{t-q} + \epsilon_t \\ \nonumber
+        \epsilon_t \overset{iid}{\sim} N(0, \sigma^2)
+    \end{eqnarray}
+
+    It is important mention that models AR(p) and MA(q) are invertible.
+    Therefore any stationary AR(p) model can be written as MA($\infty$) and with some assumptions
+    vice versa \cite{brockwell}. ARIMA model is often written with backshift operator $By_t=y_{t-1}$.
+    With this operator ARIMA(p, d, q) is listed in \ref{arima}. On the left side of the equation is AR(P) process
+    and on the right MA(q).
+
+    \begin{eqnarray} \label{arima}
+        (1- \phi_1B - \dots - \phi_pB^p)(1-B)^d y_t = \\ \nonumber
+         c + (1+\theta_1B+\dots+\theta_qB^q) \epsilon_t
+    \end{eqnarray}
+
+    After this theoretical part it is clear that ARIMA models are more complicated than family of moving averages.
+
+    %%%%%%%%
+    \section{Artificial Neural Networks}
+    Recently a large number of successful applications using neural networks for time series modeling show that they
+    can produce valuable results \cite{ann-forecasting-state-art}. There are several non trivial issues with
+    determining the appropriate architecture of the network. This has to be taken into account because it can
+    dramatically effect learning performance and also forecasting accuracy \cite{ann-model-selecting}.
+    Besides the problems with selecting right architecture learning artificial neural network is much more
+    computationally expensive than selecting appropriate ARIMA or exponential smoothing model \cite{ann-forecasting}.
+
+    Because Hawkular forecasting engine should be capable of predicting thousands of metrics in the same time, models
+    based on neural networks would have to high computational requirements. Therefore they are not suitable for our
+    environment.
+
+    %%%%%%%%
+    \section{Adaptive Filtering}
+    %TODO
+    TODO
+
+    %%%%%%%%
     \section{Time series decomposition}
     Many models decompose time series and then model it without these patterns
     \cite{otexts}. One example of such a model is ARIMA.
@@ -249,59 +318,10 @@ If there are past data available, quantitative forecasting methods are more suit
     crucial.
 
     %%%%%%%%
-    \section{Box\,--\,Jenkins Methodology (ARIMA)}
-    Methods from Box\,--\,Jenkins methodology are the most widely used in time series
-    modelling specially for econometric data. It analyzes autocorrelations (ACF) and partial autocorrelations (PACF) between lagged
-    observations. Outcome of these two functions can be used to estimate an order of the
-    model \cite{cipra}. 
-
-    The most used model is $ARIMA(p, d, q)$. It combines autoregressive, integrated and
-    moving average. Autoregressive model consist of sum of weighed lagged values.
-    The order of this model is identified by $p$. Parameters can by estimated by ordinary
-    least squares method \cite{brockwell}. In other words all historical data are 
-    necessary for parameters estimation. For stationary time series it converges to the mean 
-    of the time series . An autoregressive model of order $p$ is written in \ref{ar_model}.
-
-    \begin{eqnarray} \label{ar_model}
-        y_t = c + e_t + \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} \\ \nonumber
-        e_t \overset{iid}{\sim} N(0, \sigma^2)
-    \end{eqnarray}
-
-    Next part of an ARIMA model is moving averages. It should not be confused with simple moving 
-    average which is used for a trend estimating. In moving average model $MA(q)$ a current value is 
-    a regression against white noise of prior values of the series. A random noise from 
-    each point is assumed to come from the same distribution which typically is 
-    a normal distribution. Model of order $q$ is in \ref{ma_model}.The estimation of
-    model parameters requires all points of time series. Calculations is done with 
-    Yule-Walker equations \cite{brockwell}.
-
-    \begin{eqnarray} \label{ma_model}
-        y_t = c + e_t + \theta_1 e_{t-1} + \theta_2 e_{t-2} + \dots + \theta_p y_{t-q}
-    \end{eqnarray}
-
-    It is important to mention that models $AR(p)$ and $MA(q)$ are invertible. 
-    Therefore any stationary $AR(p)$ model can be written as $MA(\infty)$
-    \cite{brockwell}. Last part of an $ARIMA$ model is $I(d)$. It denotes 
-    number of differentiations made on the original time series. Let's define 
-    backshift operator $By_t=y_{t-1}$. With this operator $ARIMA(p, d, q)$ is
-    written in \ref{arima}. On the left side of the equation is $AR(P)$ process 
-    and on the right $MA(q)$.
-
-    \begin{eqnarray} \label{arima}
-        (1- \phi_1B - \dots - \phi_pB^p)(1-B)^d y_t = \\ \nonumber
-         c + (1+\theta_1B+\dots+\theta_qB^q) e_t
-    \end{eqnarray}
+    \section{Augmented Dickey\,--\,Fuller Test}
 
     %%%%%%%%
-    \section{Neural Networks}
-    %TODO
-    TODO
-
-    %%%%%%%%
-    \section{Adaptive Filtering}
-    %TODO
-    TODO
-
+    \section{Automatic Period Identification}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \chapter{Models on Real Data}
