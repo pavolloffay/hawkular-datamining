@@ -275,26 +275,24 @@ TODO mention that we talk only about models which makes sense to use in our envi
     Recently a large number of successful applications using neural networks for time series modeling show that they
     can produce valuable results \cite{ann-forecasting-state-art}. There are several non trivial issues with
     determining the appropriate architecture of the network. This has to be taken into account because it can
-    dramatically effect learning performance and also forecasting accuracy \cite{ann-model-selecting}.
-    Besides the problems with selecting right architecture learning artificial neural network is much more
+    dramatically effect learning performance and forecasting accuracy \cite{ann-model-selecting}.
+    Besides the problems with selecting right architecture learning process of artificial neural network is much more
     computationally expensive than selecting appropriate ARIMA or exponential smoothing model \cite{ann-forecasting}.
 
-    Because Hawkular forecasting engine should be capable of predicting thousands of metrics in the same time, models
-    based on neural networks would have to high computational requirements. Therefore they are not suitable for our
+    Because Hawkular forecasting engine should be capable of predicting thousands of metrics at the same time, models
+    based on neural networks would have too high computational requirements. Therefore they are not suitable for our
     environment.
 
     %%%%%%%%
-    \section{Adaptive Filtering}
-    %TODO
-    TODO
+    %\section{Adaptive Filtering}
+    %TODO probably I will delete this and discuss it in the conclusion that adaptive filtering can be used e.g. LMS
+    %filter.
 
     %%%%%%%%
     \section{Time series decomposition}
-    Many models decompose time series and then model it without these patterns
-    \cite{otexts}. One example of such a model is ARIMA.
-    Basic observed patterns are trend, seasonality, cycle and irregular
-    component often called called white noise. 
-    
+    In modelling time series it is sometimes necessary to decompose series to trend, seasonal and random component
+    \cite{otexts}. It is also used for initialization seasonal indices in triple exponential smoothing.
+
     \begin{itemize}
         \item \textbf{Trend $ T_{t} $}\,--\,exists if there is long term increase or decrease over
             time. Can be linear or nonlinear (e.g. exponential growth)
@@ -302,37 +300,123 @@ TODO mention that we talk only about models which makes sense to use in our envi
             Seasonality is always of fixed and known period.
         \item \textbf{Cyclic $ C_{t} $}\,--\,exists it there are long term wave-like patterns.
             Waves are not of a fixed period.
-        \item \textbf{Irregular $ N_{t} $}\,--\,unpredictable random value referred as white
+        \item \textbf{Irregular $ E_{t} $}\,--\,unpredictable random value referred as white
             noise. 
     \end{itemize}
 
-    Decomposition can be written in many forms. Two of them are additive and
-    multiplicative form.
+    Decomposition can be written in many forms. Two of them are additive and multiplicative \ref{decomposition}.
+    Which one to use depends on the underlying time series model.
 
-    \begin{eqnarray}
-        y_{t} = T_{t} + S_{t} + C_{t} + N_{t} \\
-        y_{t} = T_{t} \times S_{t} \times C_{t} \times N_{t} 
+    \begin{eqnarray} \label{decomposition}
+        y_{t} = T_{t} + S_{t} + C_{t} + E_{t} \\
+        y_{t} = T_{t} \times S_{t} \times C_{t} \times E_{t}
     \end{eqnarray}
 
-    In the following sections are discussed time series models for which is decomposition
-    crucial.
+    An algorithm for additive decomposition consist of following steps:
+
+    \begin{itemize}
+        \item Compute a trend component $\hat{T}_t$ using moving average model. If a period is even use
+        $2 x MA(period)$. If period is an odd number use $MA(period)$. $2 x MA$ for even period is used because it
+        has to be symmetric.
+        \item Calculate detrended series $y_t - \hat{T}_t$.
+        \item Estimate seasonal indices $\hat{S}_t$ for each period by averaging values of given period. For example,
+         the seasonal index for Monday is the average for all detrended Monday values in the data. Then the mean of
+         seasonal indices is substracted from each period.
+        \item Random component is calculated by substracting trend and seasonal component from original time series
+            $\hat{E}_t = y_t - \hat{T}_t - \hat{S}_t$.
+    \end{itemize}
 
     %%%%%%%%
     \section{Augmented Dickey\,--\,Fuller Test}
+    Time series statistical tests are often used for testing if there is paricular characteristics present in time
+    series. Unit root test are used whether a time series in non stationary. In this work Augmented Dickey\,--\,
+    Fuller (ADF) test was chosen for unit root testing. It's null hypothesis $H_0$ is time series contains a
+    unit root \,--\, it is not stationary. Outcome of this test is a negative ADF statistics. The more negative it is
+    the stronger the rejection of the hypothesis. The full form of ADF test is listen in \ref{adf-test}.
+
+    \begin{eqnarray} \label{adf-test}
+        \Delta y_t = \alpha + \beta t + \gamma \Delta y_{t-1} + \dots + \delta{p-1} \Delta y_{t-p+1} + \epsilon_t \\
+        ADF = \frac{\hat{\gamma}}{SE(\hat{\gamma})} \label{adf-stat}
+    \end{eqnarray}
+
+    There are multiple variants of ADF test. Some of them leave out some parts of equation \ref{adf-test}.
+    The most imporat ones and widely used are:
+
+    \begin{itemize}
+        \item \emph{nc}\,--\,no constant - for regression with no constant not time trend ($\beta t$)
+        \item \emph{c}\,--\,constant for regression with an intercept but no time trend ($\beta t$)
+        \item \emph{ct}\,--\,for a regression with an intercept and time trend
+    \end{itemize}
+
+    Each of them is good for testing particular type of stationariry. For example for testing if there is time trend
+    present in the time series \emph{c} version is best choice.
+
+    The implementation of this test is to fit multiple linear regression model of equation \ref{adf-test}. Then
+    calculate ADF statistics with \ref{adf-stat}. SE denotes standard error of estimated $\hat{\gamma}$.
 
     %%%%%%%%
-    \section{Automatic Period Identification}
+    \section{Seasonality detection}
+    Forecasting engine in Hawkular system does not have any inside information of period of a time series being
+    modelled. Therefore automatic period identification has to be implemented. In practice it is
+    a diffucult task and result often differs from correct period, specially if there is signaficant noise present in
+    the series \cite{period-meteo}.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+    There are several ways how to implement automatic period identification. The most used ones are based on
+    autocorrelation function (ACF) or spectral density \cite{period-hydman}. This work applies ACF method.
+    In the following chart \ref{img:period-acf} ACF function of sine function is shown. The period of this
+    function is seven. There are patterns repeated every seven observations and it is decreasing to zero.
+
+    \begin{figure}[H]
+        \begin{center}
+            \scalebox{0.5}{\includegraphics{img/acf-sine.pdf}}
+            \caption{ACF of sine function.}
+            \label{img:period-acf}
+        \end{center}
+    \end{figure}
+
+    The algorithm for automatic period identification is demonstrated in \ref{alg:period-find}. It uses ACF function
+    It is looking for periodically significant values of ACF function. These values have to be decreasing to zero at
+    some rate. At the infinity lag ACF approach zero.
+
+    The algorithm first calculates autocorrelation function of input time series and it finds index of the highest
+    value. Follows \texttt{checkPeriodExists} where it checks if there are singnificant values of ACF present at following $n*period$
+    indices of autocorrelation function. There have to be present at lease two consecutive values of ACF, so $n$ takes
+    values from $1,2,3\dots$
+
+    \begin{algorithm}
+        \caption{Find period of time series} \label{alg:period-find}
+        \begin{algorithmic}[1]
+        \Function{findFrequency}{$int[] ts$}
+            \If{$unitRootPresent(ts)$} \Comment{e.g. ADF test}
+                \State $ts \gets diff(ts)$ \Comment{first order differences}
+            \EndIf
+            \State $acf \gets acf(ts)$ \\
+                        \Comment{returns index of the highest value}
+            \State $period \gets findHighest(ts, period)$
+            \While{$period * 2 < ts.length$}
+                \If{$checkPeriodExists(x, ts)$}
+                    \State \Return $period$
+                \EndIf
+                $period \gets findHighest(ts, period)$
+            \EndWhile
+            \State \Return $0$
+        \EndFunction
+        \end{algorithmic}
+    \end{algorithm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Models on Real Data}
-In the previous chapter several methods for forecasting were discussed, however
-in our system only a few of them were selected and implemented. In this chapter 
-will be compared models real data.
+In the previous chapter several models for forecasting were discussed, however in Hawkular only a few of them were
+selected and implemented. It is because various time complexity of the models and more important robustness in terms of
+beeing able to produce accurate results for higher range of modelled time series.
+Following model evaluations and graphs are generated using satistical system R.
 
     %%%%%%%%
     \section{Metrics in Hawkular}
-    In Hawkular there are three types of metrics: gauge, counter and availability. 
-    All of them are univariate metrics of structure $ \{timestamp, value\} $.
+    In Hawkular there are three types of metrics: gauge, counter and availability. All of them are univariate metrics
+    of structure $ \{timestamp, value\} $. Each of these types is used for collecting dedicated types of metric data.
+    For example gauge can increase or decrease over the time, counter is monitonically decreasing or increasing and
+    availability represents up or down state of a resource.
 
     %%%%%%%%
     \section{Evaluating Forecast Accuracy}
@@ -340,8 +424,11 @@ will be compared models real data.
     several methods for evaluating forecasting errors. Chosen were two MAE and RMSE. They are 
     very similar however, RMSE gives relatively high weight to larger errors.
 
-    $$ MAE = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y_i}| $$
-    $$ RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y_i})^2} $$
+    \begin{eqnarray} \label{adf-test}
+         MAE = \frac{1}{n} \sum_{i=1}^{n} \abs{y_i - \hat{y_i}} \\
+         MSE = \frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y_i})
+    \end{eqnarray}
+
 
     %TODO
     TODO show all charts of all described models. 
