@@ -321,14 +321,14 @@ TODO mention that we talk only about models which makes sense to use in our envi
         \item Calculate detrended series $y_t - \hat{T}_t$.
         \item Estimate seasonal indices $\hat{S}_t$ for each period by averaging values of given period. For example,
          the seasonal index for Monday is the average for all detrended Monday values in the data. Then the mean of
-         seasonal indices is substracted from each period.
-        \item Random component is calculated by substracting trend and seasonal component from original time series
+         seasonal indices is subtracted from each period.
+        \item Random component is calculated by subtracting trend and seasonal component from original time series
             $\hat{E}_t = y_t - \hat{T}_t - \hat{S}_t$.
     \end{itemize}
 
     %%%%%%%%
     \section{Augmented Dickey\,--\,Fuller Test}
-    Time series statistical tests are often used for testing if there is paricular characteristics present in time
+    Time series statistical tests are often used for testing if there is particular characteristics present in time
     series. Unit root test are used whether a time series in non stationary. In this work Augmented Dickey\,--\,
     Fuller (ADF) test was chosen for unit root testing. It's null hypothesis $H_0$ is time series contains a
     unit root \,--\, it is not stationary. Outcome of this test is a negative ADF statistics. The more negative it is
@@ -340,7 +340,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     \end{eqnarray}
 
     There are multiple variants of ADF test. Some of them leave out some parts of equation \ref{adf-test}.
-    The most imporat ones and widely used are:
+    The most important ones and widely used are:
 
     \begin{itemize}
         \item \emph{nc}\,--\,no constant - for regression with no constant not time trend ($\beta t$)
@@ -348,7 +348,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
         \item \emph{ct}\,--\,for a regression with an intercept and time trend
     \end{itemize}
 
-    Each of them is good for testing particular type of stationariry. For example for testing if there is time trend
+    Each of them is good for testing particular type of stationarity. For example for testing if there is time trend
     present in the time series \emph{c} version is best choice.
 
     The implementation of this test is to fit multiple linear regression model of equation \ref{adf-test}. Then
@@ -358,7 +358,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     \section{Seasonality detection}
     Forecasting engine in Hawkular system does not have any inside information of period of a time series being
     modelled. Therefore automatic period identification has to be implemented. In practice it is
-    a diffucult task and result often differs from correct period, specially if there is signaficant noise present in
+    a difficult task and result often differs from correct period, specially if there is significant noise present in
     the series \cite{period-meteo}.
 
     There are several ways how to implement automatic period identification. The most used ones are based on
@@ -379,7 +379,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     some rate. At the infinity lag ACF approach zero.
 
     The algorithm first calculates autocorrelation function of input time series and it finds index of the highest
-    value. Follows \texttt{checkPeriodExists} where it checks if there are singnificant values of ACF present at following $n*period$
+    value. Follows \texttt{checkPeriodExists} where it checks if there are significant values of ACF present at following $n*period$
     indices of autocorrelation function. There have to be present at lease two consecutive values of ACF, so $n$ takes
     values from $1,2,3\dots$
 
@@ -409,29 +409,56 @@ TODO mention that we talk only about models which makes sense to use in our envi
 In the previous chapter several models for forecasting were discussed, however in Hawkular only a few of them were
 selected and implemented. It is because various time complexity of the models and more important robustness in terms of
 beeing able to produce accurate results for higher range of modelled time series.
-Following model evaluations and graphs are generated using satistical system R.
+Following model evaluations and graphs are generated using statistical system R.
 
     %%%%%%%%
     \section{Metrics in Hawkular}
     In Hawkular there are three types of metrics: gauge, counter and availability. All of them are univariate metrics
     of structure $ \{timestamp, value\} $. Each of these types is used for collecting dedicated types of metric data.
-    For example gauge can increase or decrease over the time, counter is monitonically decreasing or increasing and
+    For example gauge can increase or decrease over the time, counter is monotonically decreasing or increasing and
     availability represents up or down state of a resource.
 
     %%%%%%%%
-    \section{Evaluating Forecast Accuracy}
+    \section{Evaluating Forecasting Accuracy}
     In order to evaluate model it is important to estimate an error of the forecast. There are 
-    several methods for evaluating forecasting errors. Chosen were two MAE and RMSE. They are 
-    very similar however, RMSE gives relatively high weight to larger errors.
+    several statistics for evaluating forecasting errors. The most used ones are mean squared error (MSE)
+    \ref{accuracy-mse} and mean absolute error (MAE) \ref{accuracy-mae}. The difference between them is that MSE
+    emphasizes the extremes while MAE is more robust to outliers.
 
-    \begin{eqnarray} \label{adf-test}
-         MAE = \frac{1}{n} \sum_{i=1}^{n} \abs{y_i - \hat{y_i}} \\
-         MSE = \frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y_i})
+    \begin{subequations} \label{accuracy}
+        \begin{align} \label{accuracy-mse}
+             MSE = \frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y_i}) \\ \label{accuracy-mae}
+             MAE = \frac{1}{n} \sum_{i=1}^{n} \abs{y_i - \hat{y_i}}
+         \end{align}
+    \end{subequations}
+
+    %%%%%%%%
+    \section{Model Selection}
+    When comparing multiple models, statistics like MSE or MAE are not the best objective functions. Comparison
+    based on this statistics can select complicated model with lots of parameters, which may overfits training data
+    and most importantly it selects less robust model \cite{cipra}. Therefore for comparing multiple models another
+    factors has to be added to objective function. These factors are number of parameters of the model. The
+    most used criteria for model sections are: Akaike information criterion (AIC) and Bayesian information
+    criterion (BIC). Model with lower information criterion is preferred.
+
+    \begin{eqnarray} \label{aic}
+        AIC = 2 k - \ln(L) \\ \nonumber
+        BIC = k \ln(n) - 2 \ln(L)
     \end{eqnarray}
 
+    Equations for AIC and BIC are listed in \ref{aic}. Number of parameters of the model represents $k$, $n$ is number
+    of observations and $L$ is maximized value of the likelihood function of the model. In case for exponential
+    smoothing it is minimized sum of squared error of one step ahead prediction of training data set. From the
+    equations it can be seen that BIC penalizes models with more parameters. There is also AIC criterion with
+    correction form \ref{aicc}. Corrected version of AIC more penalizes longer models.
 
-    %TODO
-    TODO show all charts of all described models. 
+    \begin{eqnarray} \label{aicc}
+        AICc = AIC + \frac{2k(k+1)}{n-k-1}
+    \end{eqnarray}
+
+    %%%%%%%%
+    \section{Evaluation on Data}
+    Show graphs of models for sample time series.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \chapter{Design and Implementation}
@@ -483,7 +510,7 @@ sections of implementation.
     \end{figure}
 
     %%%%%%%%
-    \section{Design of data structures}
+    \section{Design of Data Structures}
     In this section are described the most interesting parts of the implementation.
     
     Hawkular Inventory stores all entities of the application. Back end is graph
@@ -531,8 +558,14 @@ sections of implementation.
      }
     \end{lstlisting}
 
+    \subsection{Automatic Forecaster}
+        TODO
+
+    \section{Model Optimization}
+
+
     %%%%%%%%
-    \section{Testing and Documentation}
+    \section{Tests Automation and Documentation}
     Unit tests were developed to cover crucial functionality of the program. The
     frameworks JUnit and TestNG are used for testing. Data mining module interacts with many other modules so
     integration and end to end tests were also implemented. Integration and end to end
@@ -546,10 +579,14 @@ sections of implementation.
     documentation available.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\chapter{Evaluation}
+\chapter{Evaluation of Implemented Models}
 %TODO
-TODO do an example how to generate an alert.
-maybe generate synthetic data and use it as input for models.
+TODO Do an example how to generate an alert.
+
+    %%%%%%%%
+    \section{Prediction capabilities}
+    Show prediction capabilities of implemented models.
+    TODO Can I compare it against R implementation?
 
     %%%%%%%% 
     \section{The Most Important Metrics}
