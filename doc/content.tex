@@ -80,7 +80,7 @@ TODO describe existing software.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\chapter{Time Series Models}
+\chapter{Time Series Models} \label{models}
 This chapter focuses on time series theory and various approaches for modelling time series.
 Models are ordered from simpler to more complex ones. 
 
@@ -433,7 +433,7 @@ Following model evaluations and graphs are generated using statistical system R.
     \end{subequations}
 
     %%%%%%%%
-    \section{Model Selection}
+    \section{Model Selection} \label{model-selection}
     When comparing multiple models, statistics like MSE or MAE are not the best objective functions. Comparison
     based on this statistics can select complicated model with lots of parameters, which may overfits training data
     and most importantly it selects less robust model \cite{cipra}. Therefore for comparing multiple models another
@@ -458,21 +458,150 @@ Following model evaluations and graphs are generated using statistical system R.
 
     %%%%%%%%
     \section{Evaluation on Data}
-    Show graphs of models for sample time series.
+    An analytical process of modelling time series advise to plot the data and fit various models chosen by an
+    forecaster previous experience. In second step compare statistics of those models and choose one the best describes
+    data. However, this approach can be used only if a process of modelling is conducted by human being.
+
+    In this section a real time series is modelled using time series discussed in section \ref{models}.
+    Chosen time series is \emph{austourists} from R package \texttt{fpp}. This series is a measurement of quarterly
+    visitor nights spent by international tourists in Australia. It was chosen on purpose because it
+    contains trend and seasonality.
+
+    In the first chart \ref{img:simple-models} there is depicted na\"{i}ve, average and drift model. Average model is
+    just an overall average of the whole time series. It does not change over time. However there could be online
+    version of this algorithm for which an average would be calculated for each new value. Na\"{i}ve and drift model
+    copy values of time series with one step lag. These two models differs in forecasts. Drift model is capable of
+    capturing trends.
+
+    \begin{figure}[H]
+        \begin{center}
+%            \resizebox{12cm}{8cm}{\includegraphics{img/simple-models.pdf}}
+            \scalebox{0.25}[0.2]{\includegraphics{img/simple-models.pdf}}
+            \caption{Simple models on \emph{austourists}.}
+            \label{img:simple-models}
+        \end{center}
+    \end{figure}
+
+    \begin{figure}[H]
+        \begin{center}
+            \scalebox{0.25}[0.2]{\includegraphics{img/exp-smoothings.pdf}}
+            \caption{Exponential smoothings on \emph{austourists}.}
+            \label{img:exp-smoothings}
+        \end{center}
+    \end{figure}
+
+    \begin{figure}[H]
+        \begin{center}
+            \scalebox{0.25}[0.2]{\includegraphics{img/arima-sarima.pdf}}
+            \caption{Arima models on \emph{austourists}.}
+            \label{img:arimas}
+        \end{center}
+    \end{figure}
+
+    Exponential smoothings are depicted in \ref{img:exp-smoothings}. For this particular series it is obvious that
+    seasonal is the best describing modelled time series. In the beginning can be seen how it the seasonal model
+    changing and learning the seasonal pattern from data. Learning and adaptivity to new trends depends on smoothing
+    parameters of the models. Higher values of parameters allows the model to quicier adapt to changes. Models with
+    lower smoothing parameters are more robust to the changes.
+
+    Arima models are showed in \ref{img:arimas}. Non seasonal model is already capable of capturing some seasonal
+    patterns but it is more random whereas seasonal patterns should be of fixed period. Therefore seasonal Arima with
+    dedicated model for each period is more appropriate.
+
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{l|r|r|c}
+                    \textbf{Model} & \textbf{MSE} & \textbf{MAE} & \textbf{AIC} \\ \hline \hline
+                    Na\"{i}ve & 104.74 & 8.64 & \\
+                    Drift & 104.60 & 8.47 & \\
+                    Average & 79.91 & 7.14 & \\ \hline
+                    Simple exp. smoothing & 53.54 & 5.91 & 380.88 \\
+                    Double exp. smoothing & 44.41 & 5.28 & 375.90 \\
+                    Triple exp. smoothing & 5.34 & 1.71 & 282.73 \\ \hline
+                    Linear regression & 41.85 & 5.10 & 321.46 \\ \hline
+                    ARIMA(2, 1, 2) & 30.88 & 4.35 & 310.6 \\
+                    SARIMA(1, 0, 0)(1, 1, 0)[4] & 4.79 & 1.63 & 206.95 \\
+            \end{tabular}
+            \caption{Statistics of models}
+            \label{tab:models-stat}
+        \end{center}
+    \end{table}
+
+    In \ref{tab:models-stat} are listed statistics produces by each model. Model with lowest one step ahead prediction
+    is seasonal Arima and triple exponential smoothing which is correct for highly seasonal time series such as this
+    one. For model selection would be used AIC statistics which is correlated to MSE.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \chapter{Design and Implementation}
-Module for an alert prediction was named Hawkular Data mining. Source
-code\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}} is versioned in Git
-hosted on Github. On every commit a build with integration and unit tests was triggered in
-Travis CI. Pull requests were always reviewed by some team member.
+Module for an alert prediction is named Hawkular Data mining. Source code is versioned in Git and
+hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}} under license
+Apache version 2.0.
 
-In the following chapters is described integration, design and the most important
-sections of implementation.
+% TODO add new section about CI?
+%On every commit a build with integration and unit tests was triggered in
+%Travis CI. Pull requests were always reviewed by some team member.
+
+Project is splitted into several Maven artifact. This approach decomposes project into smaller parts
+which has dedicated functionality and can be used outside of the main Hawkular project. The most important modules
+are listed in \ref{tab:datamining-modules}.
+
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular}{l|l}
+                \textbf{Artifact Id} & \textbf{Description} \\ \hline \hline
+                datamining-forecast & Library for time series modeling and forecasting. \\
+                datamining-rest & Web archive for standalone usage without Hawkular. \\
+                datamining-dist & Web archive with Hawkular integration code.
+        \end{tabular}
+        \caption{Hawkular Data Mining modules}
+        \label{tab:datamining-modules}
+    \end{center}
+\end{table}
+
+In the following chapters is described design and the most important parts of implementation and also
+integration with Hawkular.
 
     %%%%%%%%
-    \section{Integration with Hawkular}  
-    Data mining module had to follow architecture of the whole Hawkular application.
+    \section{Design of Data Structures}
+    The core data structures of \texttt{forecast} package are interfaces for time series models and
+    forecasters. This two interfaces are related
+
+    In this section are discussed the most important data structures used in implementation.
+
+    For subscribing predictions and holding models was designed interface
+    \texttt{ModelManager} \ref{alg_modelManager}.
+    Implementation of this interface holds in memory
+    objects of models with respect to hierarchy of Inventory.
+
+    \begin{lstlisting}[caption={Interface Model Manager}, language=Java, label={alg_modelManager}]
+     public interface ModelManager {
+         void subscribe(Metric, Set<ModelOwner>);
+         void unSubscribe(tenantId, metricId);
+         Model model(tenantId, metricId);
+         ...
+     }
+    \end{lstlisting}
+
+    \texttt{ModelManager} is initialized on application startup and any change in
+    Inventory is propagated through JMS to this object. With this approach Data mining is
+    always synchronized with inventory.
+
+    Interface \texttt{ForecastingEngine} \ref{alg_forecaEngine} provides forecasts for
+    subscribed metrics. Implementation of this interface contains \texttt{ModelManager}.
+
+    \begin{lstlisting}[caption={Interface Forecasting Engine}, language=Java, label={alg_forecaEngine}]
+     public interface ForecastingEngine {
+         void learn(List<DataPoint> ts);
+         void List<DataPoint> predict(tenantId, metricId, nAhead);
+         ...
+     }
+    \end{lstlisting}
+
+
+    %%%%%%%%
+    \section{Integration into Hawkular}
+    Data mining module has to fit into the architecture of the whole Hawkular application.
+
     The same approach was followed as in other modules. That means the module 
     works also in standalone fashion without Hawkular. The build produces two Java
     web applications packaged as WAR. One is for standalone usage and other with
@@ -509,60 +638,28 @@ sections of implementation.
         \end{center}
     \end{figure}
 
-    %%%%%%%%
-    \section{Design of Data Structures}
-    In this section are described the most interesting parts of the implementation.
-    
+    % TODO moved fom data structures
     Hawkular Inventory stores all entities of the application. Back end is graph
     database\footnote{Compatible with Apache Tinkerpop\,--\,Titan and TinkerGraph}.
-    In the \ref{img_inventory} is showed part of the entities which are important for 
+    In the \ref{img_inventory} is showed part of the entities which are important for
     Data mining module.
-    Intentory high level API offers creating relationships between arbitrary entities. 
+    Intentory high level API offers creating relationships between arbitrary entities.
     This was used for enabling forecasting. This relationship contains properties map
     where is stored configuration of forecasting.
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.5}{\includegraphics{img/inventory.png}} 
+            \scalebox{0.5}{\includegraphics{img/inventory.png}}
             \caption{Structure of Inventory.}
             \label{img_inventory}
         \end{center}
     \end{figure}
 
-    For subscribing predictions and holding models was designed interface
-    \texttt{ModelManager} \ref{alg_modelManager}. 
-    Implementation of this interface holds in memory 
-    objects of models with respect to hierarchy of Inventory.
-
-    \begin{lstlisting}[caption={Interface Model Manager}, language=Java, label={alg_modelManager}]
-     public interface ModelManager {
-         void subscribe(Metric, Set<ModelOwner>);
-         void unSubscribe(tenantId, metricId);
-         Model model(tenantId, metricId);
-         ...
-     }
-    \end{lstlisting}
-
-    \texttt{ModelManager} is initialized on application startup and any change in
-    Inventory is propagated through JMS to this object. With this approach Data mining is
-    always synchronized with inventory. 
-
-    Interface \texttt{ForecastingEngine} \ref{alg_forecaEngine} provides forecasts for
-    subscribed metrics. Implementation of this interface contains \texttt{ModelManager}.
-    
-    \begin{lstlisting}[caption={Interface Forecasting Engine}, language=Java, label={alg_forecaEngine}]
-     public interface ForecastingEngine {
-         void learn(List<DataPoint> ts);
-         void List<DataPoint> predict(tenantId, metricId, nAhead);
-         ...
-     }
-    \end{lstlisting}
-
+    %%%%%%%%
     \subsection{Automatic Forecaster}
         TODO
 
-    \section{Model Optimization}
-
+        \section{Model Optimization}
 
     %%%%%%%%
     \section{Tests Automation and Documentation}
