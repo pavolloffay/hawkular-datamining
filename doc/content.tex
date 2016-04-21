@@ -33,10 +33,10 @@ TODO describe chapters
     push data to the server. These agents can also execute application specific actions. 
 
     The monolithic architecture of RHQ project was due it's size hard to maintain 
-    and lacking robust REST API lead to fresh development of new application.   
+    and lacking robust REST api lead to fresh development of new application.   
     In contrast Hawkular consist of several loosely coupled or even independent applications.
     These independent components are much
-    easier to maintain and more importantly they communicate over REST API. This
+    easier to maintain and more importantly they communicate over REST api. This
     architecture of microservices and chosen protocol allow simple development of 
     agents which can be written in any programming language. In RHQ only Java agent were
     available. Hawkular as product is customized Wildfly
@@ -73,13 +73,7 @@ TODO describe chapters
     hundreds of server each with multiple agents. Therefore performance of chosen 
     learning algorithm has to be taken in account.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\chapter{Existing Solutions}
-%TODO
-TODO describe existing software.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Time Series Models} \label{models}
 This chapter focuses on time series theory and various approaches for modelling time series.
 Models are ordered from simpler to more complex ones. 
@@ -404,8 +398,12 @@ TODO mention that we talk only about models which makes sense to use in our envi
         \end{algorithmic}
     \end{algorithm}
 
+    %%%%%%%%
+    \section{Optimization Algorithms}
+    % TODO
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Models on Real Data}
+\chapter{Models Demonstration}
 In the previous chapter several models for forecasting were discussed, however in Hawkular only a few of them were
 selected and implemented. It is because various time complexity of the models and more important robustness in terms of
 beeing able to produce accurate results for higher range of modelled time series.
@@ -414,7 +412,7 @@ Following model evaluations and graphs are generated using statistical system R.
     %%%%%%%%
     \section{Metrics in Hawkular}
     In Hawkular there are three types of metrics: gauge, counter and availability. All of them are univariate metrics
-    of structure $ \{timestamp, value\} $. Each of these types is used for collecting dedicated types of metric data.
+    of structure \\$\{timestamp, value\}$. Each of these types is used for collecting dedicated types of metric data.
     For example gauge can increase or decrease over the time, counter is monotonically decreasing or increasing and
     availability represents up or down state of a resource.
 
@@ -522,7 +520,7 @@ Following model evaluations and graphs are generated using statistical system R.
                     ARIMA(2, 1, 2) & 30.88 & 4.35 & 310.6 \\
                     SARIMA(1, 0, 0)(1, 1, 0)[4] & 4.79 & 1.63 & 206.95 \\
             \end{tabular}
-            \caption{Statistics of models}
+            \caption{Statistics of models.}
             \label{tab:models-stat}
         \end{center}
     \end{table}
@@ -531,151 +529,235 @@ Following model evaluations and graphs are generated using statistical system R.
     is seasonal Arima and triple exponential smoothing which is correct for highly seasonal time series such as this
     one. For model selection would be used AIC statistics which is correlated to MSE.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Existing Solutions}
+%TODO
+TODO describe existing software.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \chapter{Design and Implementation}
-Module for an alert prediction is named Hawkular Data mining. Source code is versioned in Git and
-hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}} under license
-Apache version 2.0.
+The module for an alert prediction is named Hawkular Data Mining. Source code is versioned in Git and
+hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}} under
+license Apache version 2.0.
 
-% TODO add new section about CI?
-%On every commit a build with integration and unit tests was triggered in
-%Travis CI. Pull requests were always reviewed by some team member.
-
-Project is splitted into several Maven artifact. This approach decomposes project into smaller parts
-which has dedicated functionality and can be used outside of the main Hawkular project. The most important modules
-are listed in \ref{tab:datamining-modules}.
+The project is split into several Maven artifacts. This approach decomposes problem into smaller parts
+which have dedicated functionality and can be easy reused in other projects. It also ensures that
+third party dependencies are loaded only for certain artifacts where are needed. A figure \ref{appen:maven-deps}
+shows dependency tree of \texttt{datamining-dist}, which is the top level artifact. The most important modules are
+listed in \ref{tab:datamining-modules}. All of listed artifact ids have prefix \texttt{hawkular-datamining-}.
 
 \begin{table}[h]
     \begin{center}
         \begin{tabular}{l|l}
                 \textbf{Artifact Id} & \textbf{Description} \\ \hline \hline
-                datamining-forecast & Library for time series modeling and forecasting. \\
-                datamining-rest & Web archive for standalone usage without Hawkular. \\
-                datamining-dist & Web archive with Hawkular integration code.
+                parent & Managing shared dependencies and versions. \\
+                forecast & Core library for time series modeling and forecasting. \\
+                api & Api used within Data Mining. \\
+                rest & Web archive for standalone usage without Hawkular. \\
+                dist & Web archive with Hawkular integration code. \\
+                cdi & Support for context dependency injection. \\
+                itest & Artifact for integration tests.
         \end{tabular}
-        \caption{Hawkular Data Mining modules}
+        \caption{Hawkular Data Mining modules.}
         \label{tab:datamining-modules}
     \end{center}
 \end{table}
 
-In the following chapters is described design and the most important parts of implementation and also
-integration with Hawkular.
+In the following sections are described the most important parts of the implementation with respect to data structures
+and used algorithms.
 
     %%%%%%%%
     \section{Design of Data Structures}
-    The core data structures of \texttt{forecast} package are interfaces for time series models and
-    forecasters. This two interfaces are related
+    The core data structures from \texttt{datamining-forecast} package are interfaces for time series models
+    \ref{alg:models}and forecasters. This two interfaces are related but not the same. Each time series model should be capable of
+    predicting and learning. The main difference between forecaster and time series model is that forecaster
+    is designed for online learning and it autonomously selects the most appropriate time series model. Time series
+    models by default are not designed for online learning, however it can be accomplished with a wrapper class.
 
-    In this section are discussed the most important data structures used in implementation.
+    Metric in the Data Mining is represented as structure \texttt{MetricContex} which contains metadata like
+    collection interval, metric id and tenant id. Collection interval is necessary for calculating timestamps of
+    predicted points.
 
-    For subscribing predictions and holding models was designed interface
-    \texttt{ModelManager} \ref{alg_modelManager}.
-    Implementation of this interface holds in memory
-    objects of models with respect to hierarchy of Inventory.
-
-    \begin{lstlisting}[caption={Interface Model Manager}, language=Java, label={alg_modelManager}]
-     public interface ModelManager {
-         void subscribe(Metric, Set<ModelOwner>);
-         void unSubscribe(tenantId, metricId);
-         Model model(tenantId, metricId);
-         ...
+    \begin{lstlisting}[caption={Interface for time series models.}, language=Java, label={alg:models}]
+interface TimeSeriesModel {
+    void learn(List<DataPoint> ts);
+    List<DataPoint> forecast(int steps);
+    int numberOfParameters();
+    MetricContext context();
+    AccuracyStatistics initStatistics();
+    AccuracyStatistics runStatistics();
+    ...
      }
     \end{lstlisting}
 
-    \texttt{ModelManager} is initialized on application startup and any change in
-    Inventory is propagated through JMS to this object. With this approach Data mining is
-    always synchronized with inventory.
+    The next package is \texttt{api}. It depends on \texttt{forecast} and it eventually could
+    depend on another library for data analysis, for instance a library for an outlier detection. In this package there
+    is a code necessary for using Data Mining as a web application, for instance classes for accessing data analysis
+    objects of given metric.
 
-    Interface \texttt{ForecastingEngine} \ref{alg_forecaEngine} provides forecasts for
-    subscribed metrics. Implementation of this interface contains \texttt{ModelManager}.
+    The interface \texttt{SubscriptionManager} was designed for accessing time series analysis objects. Some of its
+    methods are listed in \ref{alg:sub-manager}. Implementation of this interface could store entities in database.
+    However, Data Mining directly does not use any database. Therefore \\ \texttt{SubscriptionManager} holds all objects
+    in memory. Internally it stores objects in map where the key is tenant and value another map where the key is
+    metric id and value finally the object for data analysis\,--\,\texttt{Subscription}.
 
-    \begin{lstlisting}[caption={Interface Forecasting Engine}, language=Java, label={alg_forecaEngine}]
-     public interface ForecastingEngine {
-         void learn(List<DataPoint> ts);
-         void List<DataPoint> predict(tenantId, metricId, nAhead);
-         ...
+    \begin{lstlisting}[caption={Interface \texttt{SubscriptionManager}.}, language=Java, label={alg:sub-manager}]
+interface SubscriptionManager {
+     void subscribe(Subscription, Owner);
+     void unsubscribe(tenant, metric, Owner);
+     Subscription model(tenant, metric);
+     ...
      }
     \end{lstlisting}
 
+    \texttt{Owner} specifies the owner who enabled prediction. The core class for data analysis is
+    \texttt{Subscription}. Currently only time series forecasting is available.
+    This object holds an instance of an automatic forecaster. Class diagram of the most important classes
+    from \texttt{forecast} and \texttt{api} is in \ref{appen:class-diagram}.
+
+    The build produces two web archives. The first one is designed for standalone usage and the second for deployment
+    into Hawkular. Both uses forecasting capabilities from \texttt{api} and \texttt{forecaster}.
+    REST api is implemented in \texttt{rest} and then reused in integration module \texttt{dist}.
+    For REST api implementation the standard JAX-RS is used.
+
+    Tests for REST api are in separate artifact \texttt{itest} which allows reusing them, for instance in the main
+    integration project.
+
+    Some of the service classes like \texttt{SubscriptionManager} are used in several other classes and also multiple
+    implementation could exists (in memory or database implementation). Therefore dependency injection
+    design pattern was introduced. Used technology is Java context dependency injection (CDI). In order to keep
+    api classes clean module \texttt{cdi} with CDI configuration was introduced.
+
+    %%%%%%%%
+    \section{Automatic Forecaster}
+    The most important class in Data Mining for doing predictions is \texttt{AutomaticForecaster} this class
+    autonomously decides which time series model should be used for modelled time series. Currently it decides from
+    three implemented metrics: simple, double and triple exponential smoothing. Other models which implement interface
+    \texttt{TimeSeriesModel} can be easy added.
+
+    The most importantly this class is capable of dealing with concept drift. It holds circular buffer of historical
+    metrics and ff statistical properties of underlying time series changes content of the buffer is used for selecting
+    new model. The strategy when a new model should be selected is configurable. System currently supports two
+    strategies. The first strategy periodically each $n$ observations selects new model.
+    The Second one is more sophisticated and it selects a new model only when the error of learning one step
+    ahead predictions exceeds by $x\%$ error calculated on learning points when model was selected.
+
+    %%%%%%%%
+    \section{Model Optimizers}
 
     %%%%%%%%
     \section{Integration into Hawkular}
-    Data mining module has to fit into the architecture of the whole Hawkular application.
+    As it was mentioned before the build produces two web archives, one for standalone usage and another for
+    deployment into Hawkular. The second web archive adds extra functionality for interacting with other Hawkular
+    components.
 
-    The same approach was followed as in other modules. That means the module 
-    works also in standalone fashion without Hawkular. The build produces two Java
-    web applications packaged as WAR. One is for standalone usage and other with
-    integration code for Hawkular.
-
-    Integration with Hawkular is showed in \ref{img_integration}.
-    The module interacts with Inventory, Metrics and Alerts. User interface uses Data
-    mining REST API for getting predictions for charts. Communication is done through 
-    Java messaging system and REST calls. Therefore modules are
-    loosely coupled.
-
-    Metrics definitions and prediction metadata are stored in Inventory.
-    Communication flows through JMS request response temporary queues. This was
-    implemented specially for asking data across all tenants.
-
-    Forecasting of 
-    metrics in Hawkular is enabled by creating relationship from tenant to tenant, metric type
-    or directly to metric in Inventory. Lower levels overrides higher (configuration on metric overrides
-    configuration on metric type or tenant\dots). Every change in Inventory is sent to bus topic
-    where other modules can consume it. When prediction gets enabled Data mining queries all
-    historical metrics to initialize model.
-
-    When Metrics receives data from Agent it sends them to topic where is consumed by Alerts
-    and Data mining. If metric if being forecasting model weight are updated and predicted
-    values are sent to the same topic. Original and predicted time series are consumed by 
-    Alerts and conditions are evaluated. At this point an alert can be fired. 
+    Hawkular as a project is packaged as a modified Wildfly server with several Hawkular components
+    deployed. In Hawkular all entities are stored in Inventory, therefore Data Mining uses this module
+    for querying metrics definitions and it adds some extra attributes necessary for predictions. Another module
+    which is used by Data Mining is Hawkular Metrics. It is a metric storage based on hybrid key-value
+    database Apache Cassandra. Diagram \ref{img:hawkular-interaction} shows Data Mining integration into Hawkular.
 
     \begin{figure}[H]
         \begin{center}
-            %TODO change to UML component diagram
-            \scalebox{0.5}{\includegraphics{img/architecture.png}} 
-            \caption{The integration with Hawkular.}
-            \label{img_integration}
+            \scalebox{0.32}{\includegraphics{img/src/architecture.pdf}}
+            \caption{The integration into Hawkular.}
+            \label{img:hawkular-interaction}
         \end{center}
     \end{figure}
 
-    % TODO moved fom data structures
-    Hawkular Inventory stores all entities of the application. Back end is graph
-    database\footnote{Compatible with Apache Tinkerpop\,--\,Titan and TinkerGraph}.
-    In the \ref{img_inventory} is showed part of the entities which are important for
-    Data mining module.
-    Intentory high level API offers creating relationships between arbitrary entities.
-    This was used for enabling forecasting. This relationship contains properties map
-    where is stored configuration of forecasting.
+    When Data Mining is deployed into Hawkular users can enable predictions by creating Relationship\footnote{Entity
+    from Inventory which can be created between arbitrary two entities.} from tenant to the target entity. This target
+    entity can be metric, metric type or tenant. When relationship is created from tenant to tenant predictions are
+    enabled for all metrics under given tenant. Similarly, when a target entity is a metric type, predictions are
+    enabled for all metrics of that type. In the figure \ref{img:relationship} is depicted part of the structure of
+    inventory with enabled predictions.
+
+    Relationships also stores properties needed for predictions. One of them is
+    forecasting horizon which tells how many prediction steps are performed for each new incoming metric data
+    points. With this approach of storing relationships in Inventory, Data Mining doesn't have to use any database for
+    entities related to predictions. This approach was achieved without any changes to Inventory data
+    model, this shows that Inventory's generic data model build on top of graph database\footnote{Compatible with
+    Apache Tinkerpop} is good approach for storing data model in this domain.
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.5}{\includegraphics{img/inventory.png}}
-            \caption{Structure of Inventory.}
-            \label{img_inventory}
+            \scalebox{0.35}{\includegraphics{img/src/inventory.pdf}}
+            \caption{Relationship between entities of Inventory.}
+            \label{img:relationship}
+        \end{center}
+    \end{figure}
+
+    Any changes in Inventory are propagated to Data Mining by subscribing to specific events. This propagation is done
+    through JMS topic where Inventory sends these events. However on application start Data Mining also needs to query
+    all predictive relationships from inventory. For this purpose JMS request-response communication was implemented in
+    Inventory. Any component which has access to internal messaging subsystem can construct query and send it for
+    execution to Inventory. As solution REST api was also proposed but it could expose vulnerability\,--\,client
+    could access any data objects of any tenant. Diagram \ref{img:sequence-enab-pred} depicts sequence of calls when
+    prediction gets enabled.
+
+    From the diagram \ref{img:sequence-enab-pred} is clear that when a prediction gets enabled historical metrics are
+    queried from Metrics module. This means that Data Mining needs access to metrics of all tenants. It is the similar
+    scenario like getting all predictive relationships from Inventory. It could not be implemented via REST api
+    because of potential vulnerability and JMS based query was also rejected by Metrics owners.
+
+    Another two solutions were proposed. The first was to bypass Metrics and query data directly from Cassandra.
+    The second was inject Metrics as CDI bean and use its Java api. The first solution was refused because the schema
+    is maintained by Metrics and can eventually can change also the backed (Cassandra) can change. The final
+    solution which is also implemented is injecting Metrics as CDI bean. This solution assumes that Metrics
+    are deployed in the same application server as Data Mining. From the performance perspective it is faster that
+    JMS or REST calls.
+
+    \begin{figure}[H]
+        \begin{center}
+            \scalebox{0.33}[0.24]{\includegraphics[angle=0]{img/src/uml-enable-predictions-sequence.pdf}}
+            \caption{Sequence diagram of enabling predictions.}
+            \label{img:sequence-enab-pred}
+        \end{center}
+    \end{figure}
+
+    Diagram \ref{img:sequence-incoming-data} shows complete data flow from agent to alerts evaluation engine.
+    Metric data is sent by agent to Metrics REST endpoint and stored in database. Then it is sent to JMS topic and
+    consumed by Alerts and Data Mining. In parallel Alerts evaluates alerts criteria and Data Mining computes
+    predictions. After computation predicted data are sent to the same JMS topic and consumed by Alerts.
+
+    Data Mining changes \texttt{id} of predicted points in order to be able to distinguish original time series from
+    predicted. For predicted metrics Alerts can evaluate the same conditions as for original time series or use
+    different ones. At this point an alert for predicted metrics can be triggered.
+
+    \begin{figure}[H]
+        \begin{center}
+            \scalebox{0.33}[0.24]{\includegraphics[angle=0]{img/src/uml-incoming-data-sequence.pdf}}
+            \caption{Sequence diagram of incoming data from agent.}
+            \label{img:sequence-incoming-data}
         \end{center}
     \end{figure}
 
     %%%%%%%%
-    \subsection{Automatic Forecaster}
-        TODO
+    \section{Test Automation and Documentation}
+    Core functionality of the application is covered by unit tests. Junit framework is used for this type of tests.
+    Because Data Mining interacts with other applications and modules integration tests are also implemented. These
+    tests are run from Maven profile which starts web server with necessary modules deployed.
+    Last type of implemented tests are end-to-end tests which calls REST endpoint of one module and expect result
+    in call from another module. This type of tests are also executed in Maven profile with running web server.
+    End-to-end tests for Data Mining project live in the main Hawkular integration repository\footnote{
+    Available at \url{https://github.com/hawkular/hawkular}.}.
 
-        \section{Model Optimization}
+    All tests are automatically executed every time developer creates a pull request or pushes code to the master
+    branch. For this Travis continuous integration platform was used which is for free for open source projects on
+    Github.
+
+    Documentation is directly written in Java code as javadoc. REST api documentation is also directly
+    written in source code using Swagger framework and automatically generated at build time
+    \footnote{Available at \url{http://www.hawkular.org/docs/rest/rest-datamining.html}}.
 
     %%%%%%%%
-    \section{Tests Automation and Documentation}
-    Unit tests were developed to cover crucial functionality of the program. The
-    frameworks JUnit and TestNG are used for testing. Data mining module interacts with many other modules so
-    integration and end to end tests were also implemented. Integration and end to end
-    tests were written in Groovy because of the simple and well-arranged http client. It
-    is also possible to easy define JSON string which is sent as POST object.
+    \section{Releases}
+    By the time writing of this thesis there was only one release with version \texttt{0.1.Final}. It is also available
+    in the Maven central repository. Complete group id is \texttt{org.hawkular.datamining}. The most important
+    artifact ids are listed in \ref{tab:datamining-modules}. Release notes of the release are available on
+    Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining/releases}}.
 
-    Documentation is written directly in Java code as javadoc. Documentation of the REST
-    API was automatically generated by framework Swagger\footnote{Available at
-    \url{http://swagger.io/}} and then automatically uploaded at Hawkular website. This
-    was done at every build in Travis-CI. With this approach there were always the newest 
-    documentation available.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation of Implemented Models}
 %TODO
 TODO Do an example how to generate an alert.

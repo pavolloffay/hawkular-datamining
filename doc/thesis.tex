@@ -13,6 +13,7 @@
 
 % my declared packages
 % Images
+\usepackage[outdir=./]{epstopdf}
 \usepackage{graphicx}
 \usepackage{float} 
 % Math
@@ -96,5 +97,25 @@
 % Bibliography goes here
 % Index goes here (optional)
 \bibliographystyle{czechiso} % sets plain bibliography style  
-\bibliography{bibliography}     % BibTeX database file 
+\bibliography{bibliography}     % BibTeX database file
+
+% Appendix
+\appendix
+\chapter{Figures}
+\begin{figure}[H]
+    \begin{center}
+        \scalebox{0.36}[0.55]{\includegraphics{img/src/maven-deps-tree.pdf}}
+        \caption{Dependency tree of maven artifacts.}
+        \label{appen:maven-deps}
+    \end{center}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{center}
+        \scalebox{0.4}[0.24]{\includegraphics[angle=90]{img/src/class-diagram.pdf}}
+        \caption{Partial class diagram of \texttt{datamining-forecast} and \texttt{datamining-api}.}
+        \label{appen:class-diagram}
+    \end{center}
+\end{figure}
+
 \end{document}

@@ -6,3 +6,7 @@
 *.out
 missfont.log
 
+*.dia~
+img/src/*.eps
+img/src/*.pdf
+
