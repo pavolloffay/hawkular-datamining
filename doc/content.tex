@@ -33,10 +33,10 @@ TODO describe chapters
     push data to the server. These agents can also execute application specific actions. 
 
     The monolithic architecture of RHQ project was due it's size hard to maintain 
-    and lacking robust REST api lead to fresh development of new application.   
+    and lacking robust REST API lead to fresh development of new application.   
     In contrast Hawkular consist of several loosely coupled or even independent applications.
     These independent components are much
-    easier to maintain and more importantly they communicate over REST api. This
+    easier to maintain and more importantly they communicate over REST API. This
     architecture of microservices and chosen protocol allow simple development of 
     agents which can be written in any programming language. In RHQ only Java agent were
     available. Hawkular as product is customized Wildfly
@@ -49,12 +49,12 @@ TODO describe chapters
             source single sing-on and identity management for RESTful web services.}
         \item Inventory\,--\,graph based registry of all entities in Hawkular
         \item Metrics\,--\,time series metrics engine based on Cassandra\footnote{An open
-            source distributed database management system. Hybrid between key\,--\,value and
+            source distributed database management system. Hybrid between key-value and
         column\,--\,oriented database.}
         \item Alerts\,--\,alerting subsystem based on JBoss Drools
     \end{itemize}
 
-    Some of the modules uses also Java messaging topics (JMS) for inter\,--\,component
+    Some of the modules uses also Java messaging topics (JMS) for inter-component
     one to many communication.
 
     Modules are packaged as standard Java web archives (WAR), or enterprise archives (EAR)
@@ -122,7 +122,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     but are very easy to implement.
 
     %%%%%%%%
-    \section{Linear Regression}
+    \section{Linear Regression} \label{sec:linear-regression}
     Linear regression is classical statistical analysis technique. It is often used to
     determine whether there is linear relationship between dependent and eventually more
     independent variables. It is also often used for predictions mainly in econometric
@@ -163,10 +163,10 @@ TODO mention that we talk only about models which makes sense to use in our envi
     In other words smaller weights are associated to older observations.
     Equation for simple exponential smoothing is listed in \ref{exp_smoothing}.
 
-    \begin{eqnarray} \label{exp_smoothing}
+    \begin{gather} \label{exp_smoothing}
          \hat{y}_{T+1|T} = l_t \\ \nonumber
          l_t = \alpha y_t + (1-\alpha)l_{t-1}
-    \end{eqnarray}
+    \end{gather}
 
     For smoothing parameter $\alpha$ holds $ 0 \leq \alpha \leq 1 $. Note, if $\alpha = 1$ then \\
     $\hat{y}_{T+1|T} = y_{T}$ so forecasts are equal to the na\"{i}ve method.
@@ -185,30 +185,30 @@ TODO mention that we talk only about models which makes sense to use in our envi
     This was done by Charles C. Holt in 1957. This method is slightly more complicated than 
     original one without trend. In order to add trend component another equation has to be added. 
 
-    \begin{eqnarray} \label{exp_holt}
+    \begin{gather} \label{exp_holt}
         \hat{y}_{t+h|t} = l_{t} + hb_{t} \\ \nonumber
          l_t = \alpha y_t + (1 - \alpha) (l_{t-1} + b_{t-1}) \\ \nonumber
          b_t = \beta (l_t - l_{t-1}) + (1 - \beta)b_{t-1} 
-    \end{eqnarray}
+    \end{gather}
 
     Where a parameter $b_t$ denotes a slope of the series and the parameter $l_t$ level. 
     There is also a new parameter smoothing parameter of the slope\,--\,$\beta$. 
     It's rage is equal to $\alpha$, so $\alpha,\beta \in \interval[{0,1}]$. 
 
     %%%%%%%%
-    \section{Holt\,--\,Winters Seasonal Method}
+    \section{Holt-Winters Seasonal Method}
     This method is an extension of Holt's linear trend method with added
     seasonality. It is also called triple exponential smoothing. In this model 
     there are three equations \ref{exp_holt_winters}. 
     One for level, second for trend and third for seasonality.
     Each pattern uses smoothing constant $ \alpha,\beta,\gamma \in \interval[{0,1}]$.
 
-    \begin{eqnarray} \label{exp_holt_winters}
+    \begin{gather} \label{exp_holt_winters}
         \hat{y}_{t+h|t} = l_{t} + hb_{t} + s_{t+h_m-m}\\ \nonumber
         l_t = \alpha (y_t - s_{t-m}) + (1 - \alpha) (l_{t-1} + b_{t-1}) \\ \nonumber
         b_t = \beta (l_t - l_{t-1}) + (1 - \beta)b_{t-1} \\ \nonumber
         s_t = \gamma (y_t - l_{t-1} - b_{t-1}) + (1-\gamma)s_{t-m}
-    \end{eqnarray}
+    \end{gather}
 
     Where $h_m=[(h-1) \mod m] + 1$, which ensures that the estimates of the seasonal
     indices came from the correct season. This model can be used only if the period 
@@ -226,7 +226,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     in \ref{ar_model}. The order of this model is defined by $p$ and can be determined from PACF function \cite{cipra}.
     A moving average model (MA) is sum of weighted errors of order $q$. The order of this part can be
     determined from ACF function \cite{cipra}. The last part of the model is used when a time series is non stationary.
-    There are several ways how to make a  particular time series stationary. Box Jenkins methodology uses
+    There are several ways how to make a  particular time series stationary. Box\,--\,Jenkins methodology uses
     differencing\,--\,integration part. The order if differencing original series is denoted by $d$ letter. Usually
     first order differences are enough to make time series stationary.
 
@@ -235,10 +235,10 @@ TODO mention that we talk only about models which makes sense to use in our envi
     historical points needs to be available. In \cite{cipra} minimal training size is set to at least fifty
     observations.
 
-    \begin{eqnarray} \label{ar_model}
+    \begin{gather} \label{ar_model}
         y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \epsilon_t \\ \nonumber
         \epsilon_t \overset{iid}{\sim} N(0, \sigma^2)
-    \end{eqnarray}
+    \end{gather}
 
     Moving averages model should not be confused with simple moving average which is
     used for trend estimation. In moving average model MA(q) the current value is
@@ -246,15 +246,15 @@ TODO mention that we talk only about models which makes sense to use in our envi
     each point is assumed to come from the same distribution which typically is 
     a normal distribution. Model of the order $q$ is listed in \ref{ma_model}.
 
-    \begin{eqnarray} \label{ma_model}
+    \begin{gather} \label{ma_model}
         y_t = \theta_1 \epsilon_{t-1} + \theta_2 \epsilon_{t-2} + \dots + \theta_p y_{t-q} + \epsilon_t \\ \nonumber
         \epsilon_t \overset{iid}{\sim} N(0, \sigma^2)
-    \end{eqnarray}
+    \end{gather}
 
     It is important mention that models AR(p) and MA(q) are invertible.
     Therefore any stationary AR(p) model can be written as MA($\infty$) and with some assumptions
     vice versa \cite{brockwell}. ARIMA model is often written with backshift operator $By_t=y_{t-1}$.
-    With this operator ARIMA(p, d, q) is listed in \ref{arima}. On the left side of the equation is AR(P) process
+    With this operator \\ARIMA(p, d, q) is listed in \ref{arima}. On the left side of the equation is AR(P) process
     and on the right MA(q).
 
     \begin{eqnarray} \label{arima}
@@ -318,23 +318,23 @@ TODO mention that we talk only about models which makes sense to use in our envi
     %%%%%%%%
     \section{Augmented Dickey\,--\,Fuller Test}
     Time series statistical tests are often used for testing if there is particular characteristics present in time
-    series. Unit root test are used whether a time series in non stationary. In this work Augmented Dickey\,--\,
-    Fuller (ADF) test was chosen for unit root testing. It's null hypothesis $H_0$ is time series contains a
-    unit root \,--\, it is not stationary. Outcome of this test is a negative ADF statistics. The more negative it is
+    series. Unit root test are used whether a time series in non stationary. In this work Augmented \\Dickey\,--\,Fuller
+    (ADF) test was chosen for unit root testing. It's null hypothesis $H_0$ is time series contains a
+    unit root\,--\,it is not stationary. Outcome of this test is a negative ADF statistics. The more negative it is
     the stronger the rejection of the hypothesis. The full form of ADF test is listen in \ref{adf-test}.
 
-    \begin{eqnarray} \label{adf-test}
+    \begin{gather} \label{adf-test}
         \Delta y_t = \alpha + \beta t + \gamma \Delta y_{t-1} + \dots + \delta{p-1} \Delta y_{t-p+1} + \epsilon_t \\
         ADF = \frac{\hat{\gamma}}{SE(\hat{\gamma})} \label{adf-stat}
-    \end{eqnarray}
+    \end{gather}
 
     There are multiple variants of ADF test. Some of them leave out some parts of equation \ref{adf-test}.
     The most important ones and widely used are:
 
     \begin{itemize}
-        \item \emph{nc}\,--\,no constant - for regression with no constant not time trend ($\beta t$)
-        \item \emph{c}\,--\,constant for regression with an intercept but no time trend ($\beta t$)
-        \item \emph{ct}\,--\,for a regression with an intercept and time trend
+        \item \emph{nc}\,--\,for regression with no constant nor time trend ($\beta t$)
+        \item \emph{c}\,--\,for regression with an intercept but no time trend ($\beta t$)
+        \item \emph{ct}\,--\,for regression with an intercept and time trend
     \end{itemize}
 
     Each of them is good for testing particular type of stationarity. For example for testing if there is time trend
@@ -346,9 +346,9 @@ TODO mention that we talk only about models which makes sense to use in our envi
     %%%%%%%%
     \section{Seasonality detection}
     Forecasting engine in Hawkular system does not have any inside information of period of a time series being
-    modelled. Therefore automatic period identification has to be implemented. In practice it is
-    a difficult task and result often differs from correct period, specially if there is significant noise present in
-    the series \cite{period-meteo}.
+    modelled. Therefore automatic period identification has to be implemented. In practice it is a difficult task and
+    result often differs from correct period, specially if there is significant noise present in the series
+    \cite{period-meteo}.
 
     There are several ways how to implement automatic period identification. The most used ones are based on
     autocorrelation function (ACF) or spectral density \cite{period-hydman}. This work applies ACF method.
@@ -357,7 +357,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.5}{\includegraphics{img/acf-sine.pdf}}
+            \scalebox{0.73}[0.6]{\includegraphics{img/acf-sine.pdf}}
             \caption{ACF of sine function.}
             \label{img:period-acf}
         \end{center}
@@ -368,7 +368,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     some rate. At the infinity lag ACF approach zero.
 
     The algorithm first calculates autocorrelation function of input time series and it finds index of the highest
-    value. Follows \texttt{checkPeriodExists} where it checks if there are significant values of ACF present at following $n*period$
+    value. Follows checking it checks if there are significant values of ACF present at following $n*period$
     indices of autocorrelation function. There have to be present at lease two consecutive values of ACF, so $n$ takes
     values from $1,2,3\dots$
 
@@ -434,10 +434,10 @@ Following model evaluations and graphs are generated using statistical system R.
     most used criteria for model sections are: Akaike information criterion (AIC) and Bayesian information
     criterion (BIC). Model with lower information criterion is preferred.
 
-    \begin{eqnarray} \label{aic}
+    \begin{gather} \label{aic}
         AIC = 2 k - \ln(L) \\ \nonumber
         BIC = k \ln(n) - 2 \ln(L)
-    \end{eqnarray}
+    \end{gather}
 
     Equations for AIC and BIC are listed in \ref{aic}. Number of parameters of the model represents $k$, $n$ is number
     of observations and $L$ is maximized value of the likelihood function of the model. In case for exponential
@@ -469,7 +469,7 @@ Following model evaluations and graphs are generated using statistical system R.
     \begin{figure}[H]
         \begin{center}
 %            \resizebox{12cm}{8cm}{\includegraphics{img/simple-models.pdf}}
-            \scalebox{0.25}[0.2]{\includegraphics{img/simple-models.pdf}}
+            \scalebox{0.255}[0.23]{\includegraphics{img/simple-models.pdf}}
             \caption{Simple models on \emph{austourists}.}
             \label{img:simple-models}
         \end{center}
@@ -477,7 +477,7 @@ Following model evaluations and graphs are generated using statistical system R.
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.25}[0.2]{\includegraphics{img/exp-smoothings.pdf}}
+            \scalebox{0.255}[0.215]{\includegraphics{img/exp-smoothings.pdf}}
             \caption{Exponential smoothings on \emph{austourists}.}
             \label{img:exp-smoothings}
         \end{center}
@@ -485,7 +485,7 @@ Following model evaluations and graphs are generated using statistical system R.
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.25}[0.2]{\includegraphics{img/arima-sarima.pdf}}
+            \scalebox{0.255}[0.25]{\includegraphics{img/arima-sarima.pdf}}
             \caption{Arima models on \emph{austourists}.}
             \label{img:arimas}
         \end{center}
@@ -565,7 +565,8 @@ if some libraries can be used in the implementation.
     Operations Analytics, one of IBM Tivoli products can automatically detect correlations between
     metrics which can lead to detection of application issues, for example an anomaly detection. Another part of Tivoli
     solution\,--\,Netcool Network Management is capable of predicting events. There is also another predictive analysis
-    in Tivoli Monitoring module\footnote{Available at \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}}
+    in Tivoli Monitoring module\footnote{Available at
+    \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}}
     In the online document there is mentioned that predictive engine does not work on real time streams of data. Tivoli
     is definitely big solution and in order to get real predictive capabilities it would require to contact IBM
     support.
@@ -590,7 +591,7 @@ if some libraries can be used in the implementation.
     \begin{table}[h]
         \begin{center}
             \begin{tabular}{l|c|c}
-                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{ets()} from \texttt{forecast}} \\ \hline \hline
+                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{forecast}} \\ \hline \hline
                 Simple ex. & 4.91 sec. & 0.003 sec.\\
                 Double ex. & 9.31 sec. & 0.006 sec.\\
                 Triple ex. & 6.45 sec. & 0.209 sec.\\
@@ -629,7 +630,7 @@ listed in \ref{tab:datamining-modules}. All of listed artifact ids have prefix \
             \textbf{Artifact Id} & \textbf{Description} \\ \hline \hline
             parent & Managing shared dependencies and versions. \\
             forecast & Core library for time series modeling and forecasting. \\
-            api & Api used within Data Mining. \\
+            API & API used within Data Mining. \\
             rest & Web archive for standalone usage without Hawkular. \\
             dist & Web archive with Hawkular integration code. \\
             cdi & Support for context dependency injection. \\
@@ -667,7 +668,7 @@ interface TimeSeriesModel {
      }
     \end{lstlisting}
 
-    The next package is \texttt{api}. It depends on \texttt{forecast} and it eventually could
+    The next package is \texttt{API}. It depends on \texttt{forecast} and it eventually could
     depend on another library for data analysis, for instance a library for an outlier detection. In this package there
     is a code necessary for using Data Mining as a web application, for instance classes for accessing data analysis
     objects of given metric.
@@ -690,20 +691,20 @@ interface SubscriptionManager {
     \texttt{Owner} specifies the owner who enabled prediction. The core class for data analysis is
     \texttt{Subscription}. Currently only time series forecasting is available.
     This object holds an instance of an automatic forecaster. Class diagram of the most important classes
-    from \texttt{forecast} and \texttt{api} is in \ref{appen:class-diagram}.
+    from \texttt{forecast} and \texttt{API} is in \ref{appen:class-diagram}.
 
     The build produces two web archives. The first one is designed for standalone usage and the second for deployment
-    into Hawkular. Both uses forecasting capabilities from \texttt{api} and \texttt{forecaster}.
-    REST api is implemented in \texttt{rest} and then reused in integration module \texttt{dist}.
-    For REST api implementation the standard JAX-RS is used.
+    into Hawkular. Both uses forecasting capabilities from \texttt{API} and \texttt{forecaster}.
+    REST API is implemented in \texttt{rest} and then reused in integration module \texttt{dist}.
+    For REST API implementation the standard JAX-RS is used.
 
-    Tests for REST api are in separate artifact \texttt{itest} which allows reusing them, for instance in the main
+    Tests for REST API are in separate artifact \texttt{itest} which allows reusing them, for instance in the main
     integration project.
 
     Some of the service classes like \texttt{SubscriptionManager} are used in several other classes and also multiple
     implementation could exists (in memory or database implementation). Therefore dependency injection
     design pattern was introduced. Used technology is Java context dependency injection (CDI). In order to keep
-    api classes clean module \texttt{cdi} with CDI configuration was introduced.
+    API classes clean module \texttt{cdi} with CDI configuration was introduced.
 
     %%%%%%%%
     \section{Automatic Forecaster}
@@ -724,32 +725,31 @@ interface SubscriptionManager {
     Used criterion is configurable for each forecaster is configurable.
 
     %%%%%%%%
-    \section{Model Optimizers} %TODO
-    Model optimizers are the most important part of the model implementation. If the parameters of model are not
-    estimated correctly model would produce high forecasting error. The idea behind optimization is to find the
-    best parameters of the model that one step ahead forecasting error is the lowest possible. In general number of
-    steps can be more than one. Formaly % TODO
+    \section{Model Optimizers}
+    Model optimizers are the most important part of the models implementation. If the model parameters are not
+    estimated correctly model would produce high forecasting error. The idea behind optimization is to find such
+    paratemeters best describing training data \cite{hyndman-state-space}. Optimization criterions can be: mean
+    squared error, mean absoulute error and likelihood. These criterions basically computes errors produced by ahead
+    predictions. The number of prediction steps depends on the forecaster objective. The most common is to use
+    only one step ahead. Data Mining currently supports only MSE criterion but others can be easy added.
 
-    \begin{eqnarray} \label{likelihood}
-da
-    \end{eqnarray}
+    The criterion is returned from model's objective function. This objective function is passed to non-linear
+    optimization algorithm from Apache Math Commons. This library implements several optimization algorithms:
+    Nelder-Mead simplex, multi-directional and bound optimization by quadratic approximation. These algorithms
+    does not need computed derivatives of the cost function.
 
-    Then well defined objective function for minimization is passed to non\,--\,linear optimization algorithm from
-    Apache Math Commons. This library implements several optimization algorithms: Nelder-Mead simplex,
-    Virginia Torczon's multi-directional and Mike Powell's BOBYQA. These algorithms does not need computed derivatives
-    of the cost function.
+    In terms of the lowest execution time and quality of the estimated parameters the best results were produced by
+    Nelder-Mead simplex algorithm. The quality of estimated parameters were compared to R's estimations.
 
-    The best results were acquired from Nelder-Mead simplex algorithm. Criterions were optimization execution time and
-    quality of the estimated parameters. Estimated parameters were compared to R's estimations.
-
-    Table \ref{tab:open-forecast-perf} contains execution times comparison of \texttt{OpenForecast} and R
-    implementation. This section addes execution time of Data Mining implementation. Complete execution times are
+    Table \ref{tab:open-forecast-perf} contains comparison of optimizers execution times from \texttt{OpenForecast}
+    and R implementation. This section addes execution time of Data Mining implementation. Complete execution times are
     listed in \ref{tab:datamining-perf}. Execution times of Data Mining's optimizers are in some cases faster than R.
+    Quality of the produced forecasts is discussed in \ref{evaluation}.
 
     \begin{table}[h]
         \begin{center}
             \begin{tabular}{l|c|c|c}
-                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{ets()} from \texttt{forecast}} &
+                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{forecast}} &
                     \textbf{Data Mining}\\ \hline \hline
                 Simple ex. & 4.91 sec. & 0.003 sec. & 0.033 sec.\\
                 Double ex. & 9.31 sec. & 0.006 sec. & 0.002 sec. \\
@@ -766,9 +766,9 @@ da
     deployment into Hawkular. The second web archive adds extra functionality for interacting with other Hawkular
     components.
 
-    Hawkular as a project is packaged as a modified Wildfly server with several Hawkular components
+    Hawkular is packaged as a modified Wildfly server with several Hawkular components
     deployed. In Hawkular all entities are stored in Inventory, therefore Data Mining uses this module
-    for querying metrics definitions and it adds some extra attributes necessary for predictions. Another module
+    for querying metric definitions and it adds some extra attributes necessary for predictions. Another module
     which is used by Data Mining is Hawkular Metrics. It is a metric storage based on hybrid key-value
     database Apache Cassandra. Diagram \ref{img:hawkular-interaction} shows Data Mining integration into Hawkular.
 
@@ -781,18 +781,18 @@ da
     \end{figure}
 
     When Data Mining is deployed into Hawkular users can enable predictions by creating Relationship\footnote{Entity
-    from Inventory which can be created between arbitrary two entities.} from tenant to the target entity. This target
+    from Inventory which can be created between arbitrary two entities.} from tenant to the target entity. Target
     entity can be metric, metric type or tenant. When relationship is created from tenant to tenant predictions are
     enabled for all metrics under given tenant. Similarly, when a target entity is a metric type, predictions are
     enabled for all metrics of that type. In the figure \ref{img:relationship} is depicted part of the structure of
     inventory with enabled predictions.
 
-    Relationships also stores properties needed for predictions. One of them is
-    forecasting horizon which tells how many prediction steps are performed for each new incoming metric data
-    points. With this approach of storing relationships in Inventory, Data Mining doesn't have to use any database for
-    entities related to predictions. This approach was achieved without any changes to Inventory data
-    model, this shows that Inventory's generic data model build on top of graph database\footnote{Compatible with
-    Apache Tinkerpop} is good approach for storing data model in this domain.
+    Relationships also store properties needed for predictions. One of them is forecasting horizon which tells how
+    many prediction steps are performed for each incoming metric data point. With this approach of storing
+    relationships in Inventory, Data Mining doesn't have to use any database for entities related to predictions.
+    This approach was achieved without any changes to Inventory data model, this shows that Inventory's generic data
+    model build on top of graph database\footnote{Compatible with Apache Tinkerpop} is good approach for storing data
+    model in this domain.
 
     \begin{figure}[H]
         \begin{center}
@@ -805,20 +805,20 @@ da
     Any changes in Inventory are propagated to Data Mining by subscribing to specific events. This propagation is done
     through JMS topic where Inventory sends these events. However on application start Data Mining also needs to query
     all predictive relationships from inventory. For this purpose JMS request-response communication was implemented in
-    Inventory. Any component which has access to internal messaging subsystem can construct query and send it for
-    execution to Inventory. As solution REST api was also proposed but it could expose vulnerability\,--\,client
-    could access any data objects of any tenant. Diagram \ref{img:sequence-enab-pred} depicts sequence of calls when
-    prediction gets enabled.
+    Inventory. Any component which has access to internal messaging subsystem can construct a query and send it for
+    execution to Inventory. REST API approach was also proposed but it could expose vulnerability\,--\,client
+    could access any data objects of any tenant. Diagram \ref{img:sequence-enab-pred} depicts sequence of calls
+    when prediction gets enabled.
 
-    From the diagram \ref{img:sequence-enab-pred} is clear that when a prediction gets enabled historical metrics are
-    queried from Metrics module. This means that Data Mining needs access to metrics of all tenants. It is the similar
-    scenario like getting all predictive relationships from Inventory. It could not be implemented via REST api
-    because of potential vulnerability and JMS based query was also rejected by Metrics owners.
+    From the diagram \ref{img:sequence-enab-pred} it is clear that when a prediction gets enabled historical metrics are
+    queried from Metrics module. This means that Data Mining needs to access metrics of all tenants. It is
+    similar scenario to getting all predictive relationships from Inventory. It could not be implemented via REST API
+    because of potential vulnerability and JMS based query was rejected by Metrics owners.
 
     Another two solutions were proposed. The first was to bypass Metrics and query data directly from Cassandra.
-    The second was inject Metrics as CDI bean and use its Java api. The first solution was refused because the schema
-    is maintained by Metrics and can eventually can change also the backed (Cassandra) can change. The final
-    solution which is also implemented is injecting Metrics as CDI bean. This solution assumes that Metrics
+    The second was to inject Metrics as CDI bean and directly use its Java API. The first solution was refused because
+    the schema is maintained by Metrics and it can eventually change and also the backed database (Cassandra) can
+    change. The final and implemented solution injectings Metrics as CDI bean. This aproach assumes that Metrics
     are deployed in the same application server as Data Mining. From the performance perspective it is faster that
     JMS or REST calls.
 
@@ -831,8 +831,8 @@ da
     \end{figure}
 
     Diagram \ref{img:sequence-incoming-data} shows complete data flow from agent to alerts evaluation engine.
-    Metric data is sent by agent to Metrics REST endpoint and stored in database. Then it is sent to JMS topic and
-    consumed by Alerts and Data Mining. In parallel Alerts evaluates alerts criteria and Data Mining computes
+    Metric data is sent by agent to Metrics where are stored to database. Then it is sent to JMS topic
+    and consumed by Alerts and Data Mining. In parallel Alerts evaluates alerts criteria and Data Mining computes
     predictions. After computation predicted data are sent to the same JMS topic and consumed by Alerts.
 
     Data Mining changes \texttt{id} of predicted points in order to be able to distinguish original time series from
@@ -847,7 +847,47 @@ da
         \end{center}
     \end{figure}
 
-    %TODO metric Explorer section
+        %%%%%%%%
+        \subsection{Hawkular UI}
+        In Hawkular predictive charts are located in Metric explorer tab. In the figure \ref{img:hawkular-explorer}
+        is showed predictive chart for metric accumulated garbage collection duration. In this case automatic
+        forecaster decides to use seasonal model of some automatically identified period. Note that for displaying
+        original time series in the chart buckets were used, so the periods would be more easily seen on raw data
+        points.
+
+        After adding concrete chart predictions can be enabled from the UI when user increases prediction horizon input.
+        So there is no need to enable predictions by manually creating relationship in Inventory.
+
+        \begin{figure}[H]
+            \begin{center}
+%                \scalebox{0.33}[0.24]{\includegraphics[angle=0]{img/hawkular-explorer.pdf}}
+                \scalebox{0.185}[0.28]{\includegraphics[angle=0]{img/hawkular-explorer.pdf}}
+                \caption{Explrer tab in Hawkular UI.}
+                \label{img:hawkular-explorer}
+            \end{center}
+        \end{figure}
+
+        Predictive charts were used from repository \texttt{hawkular-charts}. These charts are built on top of
+        D3\footnote{Avalilable at \url{https://d3js.org/}} library and encapsulated as Angular directives.
+
+    \section{REST APIs}
+    The Data Mining REST API is designed to operate on the forecasting engine. When the module is deployed into Hawkular
+    main interaction with Data Mining is goes through Inventory REST API and metric data are collected from JMS topic.
+    But this is not limited and Data Mining offers alternatives REST endpoints which can be used in standalone
+    daployment.
+
+    REST API provide following capabilities:
+
+    \begin{itemize}
+        \item Create subscription\,--\,enable prediction.
+        \item Push learning data to the engine.
+        \item Get predictions for any number of steps ahead.
+        \item Configure automatic forecaster.
+        \item Get information about model being used and statistics of the predictions.
+    \end{itemize}
+
+    Accurate and more concrete REST API documentation is available on Hawkular web page\footnote{Available at
+    \url{http://www.hawkular.org/}}.
 
     %%%%%%%%
     \section{Test Automation and Documentation}
@@ -863,7 +903,7 @@ da
     branch. For this Travis continuous integration platform was used which is for free for open source projects on
     Github.
 
-    Documentation is directly written in Java code as javadoc. REST api documentation is also directly
+    Documentation is directly written in Java code as javadoc. REST API documentation is also directly
     written in source code using Swagger framework and automatically generated at build time
     \footnote{Available at \url{http://www.hawkular.org/docs/rest/rest-datamining.html}}.
 
@@ -875,10 +915,30 @@ da
     Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining/releases}}.
 
     \section{Retrospective}
-    % TODO
+    In this section is mentioned how the project was changing, what did not worked well and what could have be done
+    better.
+
+    At the beginning of the project Apache Spark\footnote{Open source cluster computing framework available at
+    \url{https://spark.apache.org/}} was used for building regression models. It's machine learning library (MLIB)
+    offers several learning algorithms. In Data Mining linear regression with stochastic gradient descent was used.
+    Because the gradient is stochastic produced predictions are not very robust and quickly change by significant value.
+
+    Spark was mainly used because of its streaming extension that can handle
+    high-throughput stream data \cite{apache-spark}. There is also time series library
+    \texttt{spark-ts}\footnote{Available at \url{https://github.com/sryza/spark-timeseries}} which contains some
+    time series models but does not offer functionality of automatic model selection.
+
+    Due to problems discussed in \ref{sec:linear-regression} and lack of automatic forecaster decision was made
+    to drop Spark and directly implement exponential smoothing models.
+
+    During the implementation a lot of time was spent on integration with other modules, in particular with Inventory.
+    The problem was that Inventory is developed by another party and any concrete document
+    describing the integration was not proposed. The desing of the integraion was understood differently
+    by both parties, what lead to reimplementing of some parts. Therefore it is better to preciselly define the
+    integration iterface with other modules or projects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Evaluation of Implemented Models}
+\chapter{Evaluation of Implemented Models} \label{evaluation}
 %TODO
 TODO Do an example how to generate an alert.
 
@@ -894,4 +954,6 @@ TODO Do an example how to generate an alert.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \chapter{Conclusion}
+TODO
 
+\let\cleardoublepage\clearpage
