@@ -28,7 +28,7 @@ TODO describe chapters
     Hawkular is middleware monitoring and management platform
     developed by company Red Hat and independent community of contributors.
     It is a successor to very successful RHQ\footnote{Available at \url{https://rhq-project.github.io/rhq/}} 
-    project, also known as JBoss Operations Network.
+    project, also known as JBoss Operations Network (JON).
     By monitoring is meant that there are agents for diverse applications which
     push data to the server. These agents can also execute application specific actions. 
 
@@ -278,11 +278,6 @@ TODO mention that we talk only about models which makes sense to use in our envi
     environment.
 
     %%%%%%%%
-    %\section{Adaptive Filtering}
-    %TODO probably I will delete this and discuss it in the conclusion that adaptive filtering can be used e.g. LMS
-    %filter.
-
-    %%%%%%%%
     \section{Time series decomposition}
     In modelling time series it is sometimes necessary to decompose series to trend, seasonal and random component
     \cite{otexts}. It is also used for initialization seasonal indices in triple exponential smoothing.
@@ -399,7 +394,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     \end{algorithm}
 
     %%%%%%%%
-    \section{Optimization Algorithms}
+    % \section{Optimization Algorithms}
     % TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -435,7 +430,7 @@ Following model evaluations and graphs are generated using statistical system R.
     When comparing multiple models, statistics like MSE or MAE are not the best objective functions. Comparison
     based on this statistics can select complicated model with lots of parameters, which may overfits training data
     and most importantly it selects less robust model \cite{cipra}. Therefore for comparing multiple models another
-    factors has to be added to objective function. These factors are number of parameters of the model. The
+    factors has to be added to the objective function. These factors are number of parameters of the model. The
     most used criteria for model sections are: Akaike information criterion (AIC) and Bayesian information
     criterion (BIC). Model with lower information criterion is preferred.
 
@@ -531,11 +526,93 @@ Following model evaluations and graphs are generated using statistical system R.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Existing Solutions}
-%TODO
-TODO describe existing software.
+Before directly going to the design and implementation let's briefly look at existing monitoring solutions and libraries
+for time series modelling. In the next section are described not only direct competitors of Hawkular but also
+generally available software of this kind. Because Hawkular is still only an upstream project and not deliverable
+product for the customers thereby as alternative is considered Jboss Operations Network (JON). This work does not
+focus on comparison of monitoring applications. It is mentioned for more wider overview of this domain and also
+if some libraries can be used in the implementation.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\chapter{Design and Implementation}
+    \section{Monitoring and Management Platforms}
+    Out there are many monitoring solutions available. Some of them are offered as service (SaaS) and other need to be
+    deployed in customer's environment. For each application are highlighted the most important features and how it
+    differs from its rivals. It is also mentioned if the application offers predictive engine for metric data.
+
+    \subsection{New Relic}
+    New Relic was the first monitoring solution offered as SaaS \cite{new-relic}. It focuses on application performance
+    rather than infrastructure view. Java applications monitoring is done by agent. Because agent manipulates
+    with bytecote it is able to identify business transactions and monitor for instance utilization of REST endpoints
+    Agent also automatically identifies databases connected to the application being monitored. From alert
+    prediction perspective New Relic does not offer alert prediction or predictive charts.
+
+    \subsection{Dynatrace Ruxit}
+    Ruxit is another popular SaaS solution for monitoring middleware applications. Monitoring is also done by agents
+    which instruments bytecode so the application is also able to monitor business transactions. Ruxit differs from
+    others that it offers root cause analysis rather than firing multiple alerts. It directly shows causing problems
+    with visual representation \cite{ruxit}. Ruxit does not offer predictive alerting or charts.
+
+    \subsection{Open Source Projects}
+    As Hawkular is an open source project it is important to mention it's direct competitors from this area. There are
+    two major open source projects. The first one is Nagios and second Zabbix. Nagios was started in 1991 and Zabbix
+    in 2001 therefore both are more than fifteen years old. By the time of writing this thesis last contribution to
+    Nagios was from 17th September 2015 and Nagios project was active until the last moment. Both these projects does
+    not offer alert prediction.
+
+    \subsection{HP OpenView and IBM Tivoli}
+    The biggest monitoring solutions offered by these two software giants are HP OpenView and IBM Tivoli. Both are
+    composed of many independent products. Solution from HP does not offer any predictive capabilities.
+
+    Operations Analytics, one of IBM Tivoli products can automatically detect correlations between
+    metrics which can lead to detection of application issues, for example an anomaly detection. Another part of Tivoli
+    solution\,--\,Netcool Network Management is capable of predicting events. There is also another predictive analysis
+    in Tivoli Monitoring module\footnote{Available at \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}}
+    In the online document there is mentioned that predictive engine does not work on real time streams of data. Tivoli
+    is definitely big solution and in order to get real predictive capabilities it would require to contact IBM
+    support.
+
+    \section{Libraries For Time Series Forecasting} \label{libraries-for-ts}
+    In Java there is only one publicly available library for time series modelling. The library is called
+    OpenForecast\footnote{Available at \url{http://www.stevengould.org/software/openforecast/index.shtml}}. It contains
+    models like na\"{i}ve, linear regression and exponential smoothings. Whereas the library is open source, code
+    was reviewed and tested. Some assumptions about the implementation were made. The parameters of some models are
+    not estimated correctly. For example in linear regression slope and intercept are not estimated by minimizing
+    sum of squared error.
+
+    The library provides nice feature called automatic forecaster which selects the best model for given
+    time series, however the code produces null pointer exception. The bug was identified but the library is no any more
+    maintained.
+
+    Performance of the library was also tested. Table \ref{tab:open-forecast-perf} contains execution times of
+    simple, double and triple exponential smoothing models. The tested time series is generated sine function of
+    length 200 observations. The result is compared against execution times of R's function \texttt{ets} from
+    \texttt{forecast} package.
+
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{l|c|c}
+                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{ets()} from \texttt{forecast}} \\ \hline \hline
+                Simple ex. & 4.91 sec. & 0.003 sec.\\
+                Double ex. & 9.31 sec. & 0.006 sec.\\
+                Triple ex. & 6.45 sec. & 0.209 sec.\\
+            \end{tabular}
+            \caption{Execution time of parameters estimation for exponential smoothing models.}
+            \label{tab:open-forecast-perf}
+        \end{center}
+    \end{table}
+
+    From the table it is obvious that R's implementation is much faster. For example optimization of thousand double
+    exponential smoothing models would take about two and half hour. This results are not acceptable for Hawkular in
+    real time environment.
+
+    Another possibility is to directly use R implementation. There are various libraries\footnote{The most widely used:
+    RCaller and JRI}
+    which allow executing R code from Java, however it requires installed R system in the target environment. Other
+    possible solution is to use Rengin\footnote{Available at \url{http://www.renjin.org/}}\,--\,JVM interpreter for R.
+    However \texttt{forecast} package depends on other package which allow native C++ invocation for optimized
+    computations. Therefore package \texttt{forecast} can not be used with Rengin.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Design and Implementation} \label{design-impl}
 The module for an alert prediction is named Hawkular Data Mining. Source code is versioned in Git and
 hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}} under
 license Apache version 2.0.
@@ -549,14 +626,14 @@ listed in \ref{tab:datamining-modules}. All of listed artifact ids have prefix \
 \begin{table}[h]
     \begin{center}
         \begin{tabular}{l|l}
-                \textbf{Artifact Id} & \textbf{Description} \\ \hline \hline
-                parent & Managing shared dependencies and versions. \\
-                forecast & Core library for time series modeling and forecasting. \\
-                api & Api used within Data Mining. \\
-                rest & Web archive for standalone usage without Hawkular. \\
-                dist & Web archive with Hawkular integration code. \\
-                cdi & Support for context dependency injection. \\
-                itest & Artifact for integration tests.
+            \textbf{Artifact Id} & \textbf{Description} \\ \hline \hline
+            parent & Managing shared dependencies and versions. \\
+            forecast & Core library for time series modeling and forecasting. \\
+            api & Api used within Data Mining. \\
+            rest & Web archive for standalone usage without Hawkular. \\
+            dist & Web archive with Hawkular integration code. \\
+            cdi & Support for context dependency injection. \\
+            itest & Artifact for integration tests.
         \end{tabular}
         \caption{Hawkular Data Mining modules.}
         \label{tab:datamining-modules}
@@ -632,18 +709,56 @@ interface SubscriptionManager {
     \section{Automatic Forecaster}
     The most important class in Data Mining for doing predictions is \texttt{AutomaticForecaster} this class
     autonomously decides which time series model should be used for modelled time series. Currently it decides from
-    three implemented metrics: simple, double and triple exponential smoothing. Other models which implement interface
+    three implemented models: simple, double and triple exponential smoothing. Other models which implement interface
     \texttt{TimeSeriesModel} can be easy added.
 
     The most importantly this class is capable of dealing with concept drift. It holds circular buffer of historical
-    metrics and ff statistical properties of underlying time series changes content of the buffer is used for selecting
+    metrics and if statistical properties of underlying time series changes content of the buffer is used for selecting
     new model. The strategy when a new model should be selected is configurable. System currently supports two
     strategies. The first strategy periodically each $n$ observations selects new model.
     The Second one is more sophisticated and it selects a new model only when the error of learning one step
     ahead predictions exceeds by $x\%$ error calculated on learning points when model was selected.
 
+    Model selection is based on information citerions from section \ref{model-selection}. Automatic forecaster in
+    successive steps calls optimizers of given models and then selects the best with the lowest information criterion.
+    Used criterion is configurable for each forecaster is configurable.
+
     %%%%%%%%
-    \section{Model Optimizers}
+    \section{Model Optimizers} %TODO
+    Model optimizers are the most important part of the model implementation. If the parameters of model are not
+    estimated correctly model would produce high forecasting error. The idea behind optimization is to find the
+    best parameters of the model that one step ahead forecasting error is the lowest possible. In general number of
+    steps can be more than one. Formaly % TODO
+
+    \begin{eqnarray} \label{likelihood}
+da
+    \end{eqnarray}
+
+    Then well defined objective function for minimization is passed to non\,--\,linear optimization algorithm from
+    Apache Math Commons. This library implements several optimization algorithms: Nelder-Mead simplex,
+    Virginia Torczon's multi-directional and Mike Powell's BOBYQA. These algorithms does not need computed derivatives
+    of the cost function.
+
+    The best results were acquired from Nelder-Mead simplex algorithm. Criterions were optimization execution time and
+    quality of the estimated parameters. Estimated parameters were compared to R's estimations.
+
+    Table \ref{tab:open-forecast-perf} contains execution times comparison of \texttt{OpenForecast} and R
+    implementation. This section addes execution time of Data Mining implementation. Complete execution times are
+    listed in \ref{tab:datamining-perf}. Execution times of Data Mining's optimizers are in some cases faster than R.
+
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{l|c|c|c}
+                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{ets()} from \texttt{forecast}} &
+                    \textbf{Data Mining}\\ \hline \hline
+                Simple ex. & 4.91 sec. & 0.003 sec. & 0.033 sec.\\
+                Double ex. & 9.31 sec. & 0.006 sec. & 0.002 sec. \\
+                Triple ex. & 6.45 sec. & 0.209 sec. & 0.023 sec. \\
+            \end{tabular}
+            \caption{Execution time of parameters estimation for exponential smoothing models.}
+            \label{tab:datamining-perf}
+        \end{center}
+    \end{table}
 
     %%%%%%%%
     \section{Integration into Hawkular}
@@ -709,7 +824,7 @@ interface SubscriptionManager {
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.33}[0.24]{\includegraphics[angle=0]{img/src/uml-enable-predictions-sequence.pdf}}
+            \scalebox{0.30}[0.20]{\includegraphics[angle=0]{img/src/uml-enable-predictions-sequence.pdf}}
             \caption{Sequence diagram of enabling predictions.}
             \label{img:sequence-enab-pred}
         \end{center}
@@ -731,6 +846,8 @@ interface SubscriptionManager {
             \label{img:sequence-incoming-data}
         \end{center}
     \end{figure}
+
+    %TODO metric Explorer section
 
     %%%%%%%%
     \section{Test Automation and Documentation}
@@ -756,6 +873,9 @@ interface SubscriptionManager {
     in the Maven central repository. Complete group id is \texttt{org.hawkular.datamining}. The most important
     artifact ids are listed in \ref{tab:datamining-modules}. Release notes of the release are available on
     Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining/releases}}.
+
+    \section{Retrospective}
+    % TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation of Implemented Models}
