@@ -1,5 +1,5 @@
 # Pavol Loffay
-# Alert prediction master thesis Makefile
+# Makefile for building documentation (master's thesis)
 
 NAME=thesis
 BIB=bibliography
@@ -17,10 +17,10 @@ pdf: $(NAME).tex $(BIB).bib
 
 convert_images:
 	dia -t eps img/src/*.dia -O img/src
-	mogrify -format pdf -- img/src/*.{eps,svg}
+	mogrify -format pdf -- img/src/*.{eps}
 
 clean:
 	rm -rf $(AUXFILES) img/src/*.{eps,pdf}
 
-.PHONY: pdf
+.PHONY: pdf convert_images
 

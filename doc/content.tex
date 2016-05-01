@@ -27,7 +27,7 @@ TODO describe chapters
 
     Hawkular is middleware monitoring and management platform
     developed by company Red Hat and independent community of contributors.
-    It is a successor to very successful RHQ\footnote{Available at \url{https://rhq-project.github.io/rhq/}} 
+    It is a successor to very successful RHQ\footnote{Available at \url{https://rhq-project.github.io/rhq/}.}
     project, also known as JBoss Operations Network (JON).
     By monitoring is meant that there are agents for diverse applications which
     push data to the server. These agents can also execute application specific actions. 
@@ -40,7 +40,7 @@ TODO describe chapters
     architecture of microservices and chosen protocol allow simple development of 
     agents which can be written in any programming language. In RHQ only Java agent were
     available. Hawkular as product is customized Wildfly
-    \footnote{An open source project of JBoss EnterpriseApplication Platform.}
+    \footnote{An open source project of JBoss Enterprise Application Platform.}
     application server with all components deployed in it.
 
     \begin{itemize}
@@ -231,7 +231,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
     first order differences are enough to make time series stationary.
 
     Parameters of the model, including AR and MA part can by estimated by non-linear
-    least squares or maximum likelyhood estimation \cite{brockwell}. For successful estimation a certain number of
+    least squares or maximum likelihood estimation \cite{brockwell}. For successful estimation a certain number of
     historical points needs to be available. In \cite{cipra} minimal training size is set to at least fifty
     observations.
 
@@ -257,13 +257,13 @@ TODO mention that we talk only about models which makes sense to use in our envi
     With this operator \\ARIMA(p, d, q) is listed in \ref{arima}. On the left side of the equation is AR(P) process
     and on the right MA(q).
 
-    \begin{eqnarray} \label{arima}
+    \begin{gather} \label{arima}
         (1- \phi_1B - \dots - \phi_pB^p)(1-B)^d y_t = \\ \nonumber
          c + (1+\theta_1B+\dots+\theta_qB^q) \epsilon_t
-    \end{eqnarray}
+    \end{gather}
 
     After this theoretical part it is clear that ARIMA models are more complicated than family of moving averages.
-
+\newpage
     %%%%%%%%
     \section{Artificial Neural Networks}
     Recently a large number of successful applications using neural networks for time series modeling show that they
@@ -327,6 +327,8 @@ TODO mention that we talk only about models which makes sense to use in our envi
         \Delta y_t = \alpha + \beta t + \gamma \Delta y_{t-1} + \dots + \delta{p-1} \Delta y_{t-p+1} + \epsilon_t \\
         ADF = \frac{\hat{\gamma}}{SE(\hat{\gamma})} \label{adf-stat}
     \end{gather}
+
+\newpage
 
     There are multiple variants of ADF test. Some of them leave out some parts of equation \ref{adf-test}.
     The most important ones and widely used are:
@@ -401,7 +403,7 @@ TODO mention that we talk only about models which makes sense to use in our envi
 \chapter{Models Demonstration}
 In the previous chapter several models for forecasting were discussed, however in Hawkular only a few of them were
 selected and implemented. It is because various time complexity of the models and more important robustness in terms of
-beeing able to produce accurate results for higher range of modelled time series.
+being able to produce accurate results for higher range of modelled time series.
 Following model evaluations and graphs are generated using statistical system R.
 
     %%%%%%%%
@@ -494,7 +496,7 @@ Following model evaluations and graphs are generated using statistical system R.
     Exponential smoothings are depicted in \ref{img:exp-smoothings}. For this particular series it is obvious that
     seasonal is the best describing modelled time series. In the beginning can be seen how it the seasonal model
     changing and learning the seasonal pattern from data. Learning and adaptivity to new trends depends on smoothing
-    parameters of the models. Higher values of parameters allows the model to quicier adapt to changes. Models with
+    parameters of the models. Higher values of parameters allows the model to quicker adapt to changes. Models with
     lower smoothing parameters are more robust to the changes.
 
     Arima models are showed in \ref{img:arimas}. Non seasonal model is already capable of capturing some seasonal
@@ -566,14 +568,14 @@ if some libraries can be used in the implementation.
     metrics which can lead to detection of application issues, for example an anomaly detection. Another part of Tivoli
     solution\,--\,Netcool Network Management is capable of predicting events. There is also another predictive analysis
     in Tivoli Monitoring module\footnote{Available at
-    \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}}
+    \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}.}
     In the online document there is mentioned that predictive engine does not work on real time streams of data. Tivoli
     is definitely big solution and in order to get real predictive capabilities it would require to contact IBM
     support.
 
     \section{Libraries For Time Series Forecasting} \label{libraries-for-ts}
     In Java there is only one publicly available library for time series modelling. The library is called
-    OpenForecast\footnote{Available at \url{http://www.stevengould.org/software/openforecast/index.shtml}}. It contains
+    OpenForecast\footnote{Available at \url{http://www.stevengould.org/software/openforecast/index.shtml}.}. It contains
     models like na\"{i}ve, linear regression and exponential smoothings. Whereas the library is open source, code
     was reviewed and tested. Some assumptions about the implementation were made. The parameters of some models are
     not estimated correctly. For example in linear regression slope and intercept are not estimated by minimizing
@@ -615,39 +617,44 @@ if some libraries can be used in the implementation.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Design and Implementation} \label{design-impl}
 The module for an alert prediction is named Hawkular Data Mining. Source code is versioned in Git and
-hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}} under
+hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}.} under
 license Apache version 2.0.
 
 The project is split into several Maven artifacts. This approach decomposes problem into smaller parts
 which have dedicated functionality and can be easy reused in other projects. It also ensures that
 third party dependencies are loaded only for certain artifacts where are needed. A figure \ref{appen:maven-deps}
 shows dependency tree of \texttt{datamining-dist}, which is the top level artifact. The most important modules are
-listed in \ref{tab:datamining-modules}. All of listed artifact ids have prefix \texttt{hawkular-datamining-}.
+listed in \ref{tab:datamining-modules}. All ids of the listed artifacts have prefix \texttt{hawkular-datamining}.
 
 \begin{table}[h]
     \begin{center}
         \begin{tabular}{l|l}
             \textbf{Artifact Id} & \textbf{Description} \\ \hline \hline
-            parent & Managing shared dependencies and versions. \\
-            forecast & Core library for time series modeling and forecasting. \\
-            API & API used within Data Mining. \\
-            rest & Web archive for standalone usage without Hawkular. \\
-            dist & Web archive with Hawkular integration code. \\
-            cdi & Support for context dependency injection. \\
-            itest & Artifact for integration tests.
+            \texttt{parent} & Manages shared dependencies and versions. \\
+            \texttt{forecast} & Core library for time series modeling and forecasting. \\
+            \texttt{api} & API used within Data Mining. \\
+            \texttt{cdi} & Support for context dependency injection. \\
+            \texttt{rest} & Web archive for standalone usage without Hawkular. \\
+            \texttt{dist} & Web archive with Hawkular integration code. \\
+            \texttt{itest} & Artifact for integration tests.
         \end{tabular}
         \caption{Hawkular Data Mining modules.}
         \label{tab:datamining-modules}
     \end{center}
 \end{table}
 
-In the following sections are described the most important parts of the implementation with respect to data structures
-and used algorithms.
+In the following sections the most important parts of the implementation are described. Described are used data
+structures and algorithms.
 
     %%%%%%%%
-    \section{Design of Data Structures}
-    The core data structures from \texttt{datamining-forecast} package are interfaces for time series models
-    \ref{alg:models}and forecasters. This two interfaces are related but not the same. Each time series model should be capable of
+    \section{Forecast Package}
+    The forecast package is time series modelling and forecasting library. It contains several time series models
+    and utility classes for time series modelling. It is designed to be easy used in any Java project. The footprint
+    of the artifact is small. It depends only on Apache Math, Commons, Guava and Jboss logging.
+
+    The core data structures from \texttt{datamining-forecast} package are interfaces of time series models
+    \ref{alg:models} and forecasters. This two interfaces are related but not the same. Each time series model should
+     be capable of
     predicting and learning. The main difference between forecaster and time series model is that forecaster
     is designed for online learning and it autonomously selects the most appropriate time series model. Time series
     models by default are not designed for online learning, however it can be accomplished with a wrapper class.
@@ -668,16 +675,93 @@ interface TimeSeriesModel {
      }
     \end{lstlisting}
 
-    The next package is \texttt{API}. It depends on \texttt{forecast} and it eventually could
+    List of implemented models, statistical and utility classes for time series manipulation:
+
+    \begin{multicols}{2}
+    \begin{itemize}
+        \item Simple ex. smoothing
+        \item Double ex. smoothing
+        \item Triple ex. smoothing
+        \item Weighted moving average
+        \item Automatic forecaster
+        \item Augmented Dickey\,--\,Fuller test
+        \item Time series decomposition
+        \item Autocorrelation function
+        \item Time series lagging
+        \item Time series differencing
+        \item Automatic period identification
+    \end{itemize}
+    \end{multicols}
+
+        %%%%%%%%
+        \subsection{Automatic Forecaster}
+        The most important class in Data Mining is \texttt{AutomaticForecaster}. This class autonomously
+        decides which time series model should be used for modelled time series. Currently it decides from
+        three implemented models: simple, double and triple exponential smoothing. Other models which implement
+        interface \texttt{TimeSeriesModel} can be easy added.
+
+        The most importantly this class is capable of dealing with concept drift. It holds circular buffer of historical
+        metrics and if statistical properties of the underlying time series changes content of the buffer is used for
+        selecting new model.
+
+        The strategy when a new model should be selected is configurable. System currently
+        supports two strategies. The first strategy periodically each $n$ observations selects new model.
+        The Second one is more sophisticated and it selects a new model only when the error produced on learning data
+        exceeds by $x\%$ error calculated on learning points when model was selected.
+
+        Model selection is based on information criterion from section \ref{model-selection}. Automatic forecaster in
+        successive steps calls optimizers of given models and then selects the best with the lowest information criterion.
+        Used criterion is configurable for each forecaster.
+
+        %%%%%%%%
+        \subsection{Model Optimizers}
+        Model optimizers are the most important part of the models implementation. If the model parameters are not
+        estimated correctly model would produce high forecasting error. The idea behind optimization is to find such
+        parameters best describes training data \cite{hyndman-state-space}. Optimization criterion can be: mean
+        squared error, mean absolute error and likelihood. These criterion basically computes errors produced by ahead
+        predictions. The number of prediction steps depends on the forecaster objective. The most common is to use
+        only one step ahead. Data Mining currently supports only MSE criterion but others can be easy added.
+
+        The criterion is returned from model's objective function. This objective function is passed to non-linear
+        optimization algorithm from Apache Math Commons. This library implements several optimization algorithms:
+        Nelder-Mead simplex, multi-directional and bound optimization by quadratic approximation (BOBYQA). These
+        algorithms
+        does not need computed derivatives of the cost function.
+
+        In terms of the lowest execution time and quality of the estimated parameters the best results were produced by
+        Nelder-Mead simplex algorithm. The quality of estimated parameters were compared to R's estimations.
+
+        Table \ref{tab:open-forecast-perf} contains comparison of optimizers execution times from \texttt{OpenForecast}
+        and R implementation. This section adds execution time of Data Mining implementation. Complete execution times are
+        listed in \ref{tab:datamining-perf}. Execution times of Data Mining's optimizers are in some cases faster than R.
+        Quality of the produced forecasts is discussed in the chapter \ref{evaluation}.
+
+        \begin{table}[h]
+            \begin{center}
+                \begin{tabular}{l|c|c|c}
+                    \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{forecast}} &
+                        \textbf{Data Mining}\\ \hline \hline
+                    Simple ex. & 4.91 sec. & 0.003 sec. & 0.033 sec.\\
+                    Double ex. & 9.31 sec. & 0.006 sec. & 0.002 sec. \\
+                    Triple ex. & 6.45 sec. & 0.209 sec. & 0.023 sec. \\
+                \end{tabular}
+                \caption{Execution time of parameters estimation for exponential smoothing models.}
+                \label{tab:datamining-perf}
+            \end{center}
+        \end{table}
+
+    %%%%%%%%
+    \section{API Package}
+    The next package is \texttt{api}. It depends on \texttt{forecast} and it eventually could
     depend on another library for data analysis, for instance a library for an outlier detection. In this package there
-    is a code necessary for using Data Mining as a web application, for instance classes for accessing data analysis
-    objects of given metric.
+    is a code necessary for using Data Mining as a web application, for example classes for accessing data analysis
+    objects for given metric.
 
     The interface \texttt{SubscriptionManager} was designed for accessing time series analysis objects. Some of its
     methods are listed in \ref{alg:sub-manager}. Implementation of this interface could store entities in database.
     However, Data Mining directly does not use any database. Therefore \\ \texttt{SubscriptionManager} holds all objects
-    in memory. Internally it stores objects in map where the key is tenant and value another map where the key is
-    metric id and value finally the object for data analysis\,--\,\texttt{Subscription}.
+    in memory. Internally it stores objects in a map where the key is tenant and value another map where the key is
+    metric id and value the object for data analysis\,--\,\texttt{Subscription}.
 
     \begin{lstlisting}[caption={Interface \texttt{SubscriptionManager}.}, language=Java, label={alg:sub-manager}]
 interface SubscriptionManager {
@@ -688,86 +772,46 @@ interface SubscriptionManager {
      }
     \end{lstlisting}
 
-    \texttt{Owner} specifies the owner who enabled prediction. The core class for data analysis is
-    \texttt{Subscription}. Currently only time series forecasting is available.
-    This object holds an instance of an automatic forecaster. Class diagram of the most important classes
-    from \texttt{forecast} and \texttt{API} is in \ref{appen:class-diagram}.
-
-    The build produces two web archives. The first one is designed for standalone usage and the second for deployment
-    into Hawkular. Both uses forecasting capabilities from \texttt{API} and \texttt{forecaster}.
-    REST API is implemented in \texttt{rest} and then reused in integration module \texttt{dist}.
-    For REST API implementation the standard JAX-RS is used.
-
-    Tests for REST API are in separate artifact \texttt{itest} which allows reusing them, for instance in the main
-    integration project.
+    For subscribing it is necessary specify the owner of the prediction configuration. It was specially added for
+    integration with Ineventory. It is more described in section \ref{dist}. \texttt{Subscription}. Currently  only
+    time series forecasting is available. This object holds an instance of an automatic forecaster. Class diagram  of
+    the most important classes from \texttt{forecast} and \texttt{api} is in \ref{appen:class-diagram}.
 
     Some of the service classes like \texttt{SubscriptionManager} are used in several other classes and also multiple
     implementation could exists (in memory or database implementation). Therefore dependency injection
     design pattern was introduced. Used technology is Java context dependency injection (CDI). In order to keep
-    API classes clean module \texttt{cdi} with CDI configuration was introduced.
+    API classes clean module \texttt{cdi} with CDI configuration was introduced. It directly depends on \texttt{api},
+    but does not add any other functionality.
 
     %%%%%%%%
-    \section{Automatic Forecaster}
-    The most important class in Data Mining for doing predictions is \texttt{AutomaticForecaster} this class
-    autonomously decides which time series model should be used for modelled time series. Currently it decides from
-    three implemented models: simple, double and triple exponential smoothing. Other models which implement interface
-    \texttt{TimeSeriesModel} can be easy added.
+    \section{REST Package}
+    Package \texttt{rest} contains implementation of REST services. Implementation is compatible with standard JAX-RS.
 
-    The most importantly this class is capable of dealing with concept drift. It holds circular buffer of historical
-    metrics and if statistical properties of underlying time series changes content of the buffer is used for selecting
-    new model. The strategy when a new model should be selected is configurable. System currently supports two
-    strategies. The first strategy periodically each $n$ observations selects new model.
-    The Second one is more sophisticated and it selects a new model only when the error of learning one step
-    ahead predictions exceeds by $x\%$ error calculated on learning points when model was selected.
+    Data Mining REST API is designed to operate on the forecasting engine. When the module is deployed into Hawkular
+    main interaction with Data Mining goes through Inventory REST API and metric data are collected from JMS topic.
+    However, this is not limited and Data Mining offers alternative REST endpoints which can be used in standalone
+    deployment.
 
-    Model selection is based on information citerions from section \ref{model-selection}. Automatic forecaster in
-    successive steps calls optimizers of given models and then selects the best with the lowest information criterion.
-    Used criterion is configurable for each forecaster is configurable.
+    REST API provide following capabilities:
 
-    %%%%%%%%
-    \section{Model Optimizers}
-    Model optimizers are the most important part of the models implementation. If the model parameters are not
-    estimated correctly model would produce high forecasting error. The idea behind optimization is to find such
-    paratemeters best describing training data \cite{hyndman-state-space}. Optimization criterions can be: mean
-    squared error, mean absoulute error and likelihood. These criterions basically computes errors produced by ahead
-    predictions. The number of prediction steps depends on the forecaster objective. The most common is to use
-    only one step ahead. Data Mining currently supports only MSE criterion but others can be easy added.
+    \begin{itemize}
+        \item Operate on subscriptions\,--\,enable and disable prediction.
+        \item Push learning data to the engine.
+        \item Get predictions for any number of steps ahead.
+        \item Configure automatic forecaster.
+        \item Get information about model being used and statistics of the predictions.
+    \end{itemize}
 
-    The criterion is returned from model's objective function. This objective function is passed to non-linear
-    optimization algorithm from Apache Math Commons. This library implements several optimization algorithms:
-    Nelder-Mead simplex, multi-directional and bound optimization by quadratic approximation. These algorithms
-    does not need computed derivatives of the cost function.
-
-    In terms of the lowest execution time and quality of the estimated parameters the best results were produced by
-    Nelder-Mead simplex algorithm. The quality of estimated parameters were compared to R's estimations.
-
-    Table \ref{tab:open-forecast-perf} contains comparison of optimizers execution times from \texttt{OpenForecast}
-    and R implementation. This section addes execution time of Data Mining implementation. Complete execution times are
-    listed in \ref{tab:datamining-perf}. Execution times of Data Mining's optimizers are in some cases faster than R.
-    Quality of the produced forecasts is discussed in \ref{evaluation}.
-
-    \begin{table}[h]
-        \begin{center}
-            \begin{tabular}{l|c|c|c}
-                \textbf{Model} & \textbf{OpenForecast} & \textbf{R \texttt{forecast}} &
-                    \textbf{Data Mining}\\ \hline \hline
-                Simple ex. & 4.91 sec. & 0.003 sec. & 0.033 sec.\\
-                Double ex. & 9.31 sec. & 0.006 sec. & 0.002 sec. \\
-                Triple ex. & 6.45 sec. & 0.209 sec. & 0.023 sec. \\
-            \end{tabular}
-            \caption{Execution time of parameters estimation for exponential smoothing models.}
-            \label{tab:datamining-perf}
-        \end{center}
-    \end{table}
+    Accurate and more comprehensive REST API documentation is available on Hawkular web page\footnote{Available at
+    \url{http://www.hawkular.org/}.}. This documentation is automatically generated using Swagger framework.
 
     %%%%%%%%
-    \section{Integration into Hawkular}
+    \section{Distribution Package\,--\,Integration into Hawkular} \label{dist}
     As it was mentioned before the build produces two web archives, one for standalone usage and another for
     deployment into Hawkular. The second web archive adds extra functionality for interacting with other Hawkular
-    components.
+    components. Hawkular is packaged as a modified Wildfly server with several Hawkular components deployed.
 
-    Hawkular is packaged as a modified Wildfly server with several Hawkular components
-    deployed. In Hawkular all entities are stored in Inventory, therefore Data Mining uses this module
+    In Hawkular all entities are stored in Inventory, therefore Data Mining uses this module
     for querying metric definitions and it adds some extra attributes necessary for predictions. Another module
     which is used by Data Mining is Hawkular Metrics. It is a metric storage based on hybrid key-value
     database Apache Cassandra. Diagram \ref{img:hawkular-interaction} shows Data Mining integration into Hawkular.
@@ -791,7 +835,7 @@ interface SubscriptionManager {
     many prediction steps are performed for each incoming metric data point. With this approach of storing
     relationships in Inventory, Data Mining doesn't have to use any database for entities related to predictions.
     This approach was achieved without any changes to Inventory data model, this shows that Inventory's generic data
-    model build on top of graph database\footnote{Compatible with Apache Tinkerpop} is good approach for storing data
+    model build on top of graph database\footnote{Compatible with Apache Tinkerpop.} is good approach for storing data
     model in this domain.
 
     \begin{figure}[H]
@@ -810,18 +854,6 @@ interface SubscriptionManager {
     could access any data objects of any tenant. Diagram \ref{img:sequence-enab-pred} depicts sequence of calls
     when prediction gets enabled.
 
-    From the diagram \ref{img:sequence-enab-pred} it is clear that when a prediction gets enabled historical metrics are
-    queried from Metrics module. This means that Data Mining needs to access metrics of all tenants. It is
-    similar scenario to getting all predictive relationships from Inventory. It could not be implemented via REST API
-    because of potential vulnerability and JMS based query was rejected by Metrics owners.
-
-    Another two solutions were proposed. The first was to bypass Metrics and query data directly from Cassandra.
-    The second was to inject Metrics as CDI bean and directly use its Java API. The first solution was refused because
-    the schema is maintained by Metrics and it can eventually change and also the backed database (Cassandra) can
-    change. The final and implemented solution injectings Metrics as CDI bean. This aproach assumes that Metrics
-    are deployed in the same application server as Data Mining. From the performance perspective it is faster that
-    JMS or REST calls.
-
     \begin{figure}[H]
         \begin{center}
             \scalebox{0.30}[0.20]{\includegraphics[angle=0]{img/src/uml-enable-predictions-sequence.pdf}}
@@ -830,6 +862,18 @@ interface SubscriptionManager {
         \end{center}
     \end{figure}
 
+    From the diagram \ref{img:sequence-enab-pred} it is clear that when a prediction gets enabled historical metrics are
+    queried from Metrics module. This means that Data Mining needs to access metrics of all tenants. It is
+    similar scenario to getting all predictive relationships from Inventory. It could not be implemented via REST API
+    because of potential vulnerability and JMS based query was rejected by Metrics owners.
+
+    Another two solutions were proposed. The first was to bypass Metrics and query data directly from Cassandra.
+    The second was to inject Metrics as CDI bean and directly use its Java API. The first solution was refused because
+    the schema is maintained by Metrics and it can eventually change and also the backed database (Cassandra) can
+    change. The final and implemented solution injectings Metrics as CDI bean. This approach assumes that Metrics
+    are deployed in the same application server as Data Mining. From the performance perspective it is faster that
+    JMS or REST calls.
+
     Diagram \ref{img:sequence-incoming-data} shows complete data flow from agent to alerts evaluation engine.
     Metric data is sent by agent to Metrics where are stored to database. Then it is sent to JMS topic
     and consumed by Alerts and Data Mining. In parallel Alerts evaluates alerts criteria and Data Mining computes
@@ -837,7 +881,7 @@ interface SubscriptionManager {
 
     Data Mining changes \texttt{id} of predicted points in order to be able to distinguish original time series from
     predicted. For predicted metrics Alerts can evaluate the same conditions as for original time series or use
-    different ones. At this point an alert for predicted metrics can be triggered.
+    different ones. At this point an alert of predicted metrics can be triggered.
 
     \begin{figure}[H]
         \begin{center}
@@ -862,32 +906,32 @@ interface SubscriptionManager {
             \begin{center}
 %                \scalebox{0.33}[0.24]{\includegraphics[angle=0]{img/hawkular-explorer.pdf}}
                 \scalebox{0.185}[0.28]{\includegraphics[angle=0]{img/hawkular-explorer.pdf}}
-                \caption{Explrer tab in Hawkular UI.}
+                \caption{Metric explorer tab in Hawkular user interface.}
                 \label{img:hawkular-explorer}
             \end{center}
         \end{figure}
 
         Predictive charts were used from repository \texttt{hawkular-charts}. These charts are built on top of
-        D3\footnote{Avalilable at \url{https://d3js.org/}} library and encapsulated as Angular directives.
+        D3\footnote{Avalilable at \url{https://d3js.org/}.} library and encapsulated as Angular directives.
 
-    \section{REST APIs}
-    The Data Mining REST API is designed to operate on the forecasting engine. When the module is deployed into Hawkular
-    main interaction with Data Mining is goes through Inventory REST API and metric data are collected from JMS topic.
-    But this is not limited and Data Mining offers alternatives REST endpoints which can be used in standalone
-    daployment.
+        %%%%%%%%
+        \subsection{Alerts and Conditions}
+        In this section is briefly described how alerting system works. Alerts is a separate module
+        which is responsible for firing alerts based on defined conditions. As it is depicted in diagram
+        \ref{img:sequence-incoming-data} Alerts listens on the JMS topic and if conditions for given metric are
+        posityvely evaluated an alert is fired.
 
-    REST API provide following capabilities:
+        Though Alerts data model is little bit more complicated. For each unique metric id can definen multiple
+        conditions. These conditions are evaluated for every received metric data point on the bus. Conditions are
+        grouped under a trigger. If the result of evaluation is possitive than the tigger triggers an action. This
+        action can be for instance send an email, sms or perform a webhook.
 
-    \begin{itemize}
-        \item Create subscription\,--\,enable prediction.
-        \item Push learning data to the engine.
-        \item Get predictions for any number of steps ahead.
-        \item Configure automatic forecaster.
-        \item Get information about model being used and statistics of the predictions.
-    \end{itemize}
-
-    Accurate and more concrete REST API documentation is available on Hawkular web page\footnote{Available at
-    \url{http://www.hawkular.org/}}.
+        Triggers can be grouped which facilitates creation of the similar triggers. Particulary this can be used for
+        creating trigger for predictive metrics. If there is a trigger defined for the original metric it can be
+        duplicated and used on predicted values of that metric. If necessary the conditions can be changed in
+        order to not trigger an alert if the predictions are not very accurate. For this can be used trigger dampening.
+        So for the trigger which operates on predicted metrics dampening can be set as follows: \emph{``fire an alert if
+        $X$ consecutive evaluations are positive``}.
 
     %%%%%%%%
     \section{Test Automation and Documentation}
@@ -905,27 +949,28 @@ interface SubscriptionManager {
 
     Documentation is directly written in Java code as javadoc. REST API documentation is also directly
     written in source code using Swagger framework and automatically generated at build time
-    \footnote{Available at \url{http://www.hawkular.org/docs/rest/rest-datamining.html}}.
+    \footnote{Available at \url{http://www.hawkular.org/docs/rest/rest-datamining.html}.}.
 
     %%%%%%%%
     \section{Releases}
     By the time writing of this thesis there was only one release with version \texttt{0.1.Final}. It is also available
     in the Maven central repository. Complete group id is \texttt{org.hawkular.datamining}. The most important
-    artifact ids are listed in \ref{tab:datamining-modules}. Release notes of the release are available on
-    Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining/releases}}.
+    artifact ids are listed in \ref{tab:datamining-modules}. Release notes are available on
+    Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining/releases}.}.
 
+    %%%%%%%%
     \section{Retrospective}
     In this section is mentioned how the project was changing, what did not worked well and what could have be done
     better.
 
     At the beginning of the project Apache Spark\footnote{Open source cluster computing framework available at
-    \url{https://spark.apache.org/}} was used for building regression models. It's machine learning library (MLIB)
+    \url{https://spark.apache.org/}.} was used for building regression models. It's machine learning library (MLIB)
     offers several learning algorithms. In Data Mining linear regression with stochastic gradient descent was used.
     Because the gradient is stochastic produced predictions are not very robust and quickly change by significant value.
 
     Spark was mainly used because of its streaming extension that can handle
     high-throughput stream data \cite{apache-spark}. There is also time series library
-    \texttt{spark-ts}\footnote{Available at \url{https://github.com/sryza/spark-timeseries}} which contains some
+    \texttt{spark-ts}\footnote{Available at \url{https://github.com/sryza/spark-timeseries}.} which contains some
     time series models but does not offer functionality of automatic model selection.
 
     Due to problems discussed in \ref{sec:linear-regression} and lack of automatic forecaster decision was made
@@ -933,9 +978,9 @@ interface SubscriptionManager {
 
     During the implementation a lot of time was spent on integration with other modules, in particular with Inventory.
     The problem was that Inventory is developed by another party and any concrete document
-    describing the integration was not proposed. The desing of the integraion was understood differently
-    by both parties, what lead to reimplementing of some parts. Therefore it is better to preciselly define the
-    integration iterface with other modules or projects.
+    describing the integration was not proposed. The design of the integration was understood differently
+    by both parties, what lead to reimplementing of some parts. Therefore it is better to precisely define the
+    integration interface with other modules or projects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation of Implemented Models} \label{evaluation}

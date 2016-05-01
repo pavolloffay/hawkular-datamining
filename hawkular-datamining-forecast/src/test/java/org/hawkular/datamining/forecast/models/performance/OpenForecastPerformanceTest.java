@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import org.hawkular.datamining.forecast.DataPoint;
 import org.hawkular.datamining.forecast.ModelData;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import net.sourceforge.openforecast.DataSet;
@@ -35,6 +36,7 @@ import net.sourceforge.openforecast.models.TripleExponentialSmoothingModel;
 /**
  * @author Pavol Loffay
  */
+@Ignore
 public class OpenForecastPerformanceTest extends AbstractPerformanceTest {
 
     private DataSet dataSetSineMediumLength;

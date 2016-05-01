@@ -25,11 +25,13 @@ import org.hawkular.datamining.forecast.models.DoubleExponentialSmoothing;
 import org.hawkular.datamining.forecast.models.ModelOptimizer;
 import org.hawkular.datamining.forecast.models.SimpleExponentialSmoothing;
 import org.hawkular.datamining.forecast.models.TripleExponentialSmoothing;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Pavol Loffay
  */
+@Ignore
 public class DataMiningPerformanceTests extends AbstractPerformanceTest {
 
     @Test
