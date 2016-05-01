@@ -2,106 +2,135 @@
 % Project: Master thesis - Hawkular alert prediction
 % Date 20.2.2015
 
-\chapter{Introduction}
-In driving successful business on the internet it is important to assure an application
-health and reliability. One can achieve that by monitoring subjected resources and setting
-up a clever alerting system. These features are offered in many monitoring systems, however 
-being predictive in this area can even prevent undesirable states and most importantly gives administrators more time for
-reacting to such events. For instance it can decrease downtime of an application 
-or ability to load balance workload in advance by horizontal scaling targeted services. 
-
-As alerting system are sophisticated and can be composed by many conditions so this work
-focuses only on predicting future metrics values which are then sent as input to an alerting system. 
-
-In the first chapter are discussed various approaches for time series modeling and
-forecasting. Second chapter focuses on implemented models with validation on real and 
-generated test data sets. Implementation details with testing can be found in fourth chapter.
-
-TODO describe chapters
-
-    \section{Hawkular}
-    The implementation part of the master's thesis is developed as a part of an open source project
-    Hawkular\footnote{Available at \url{http://www.hawkular.org}}. 
-    Therefore the application architecture and used technologies had to fit 
-    into the overall project architecture.
-
-    Hawkular is middleware monitoring and management platform
-    developed by company Red Hat and independent community of contributors.
-    It is a successor to very successful RHQ\footnote{Available at \url{https://rhq-project.github.io/rhq/}.}
-    project, also known as JBoss Operations Network (JON).
-    By monitoring is meant that there are agents for diverse applications which
-    push data to the server. These agents can also execute application specific actions. 
-
-    The monolithic architecture of RHQ project was due it's size hard to maintain 
-    and lacking robust REST API lead to fresh development of new application.   
-    In contrast Hawkular consist of several loosely coupled or even independent applications.
-    These independent components are much
-    easier to maintain and more importantly they communicate over REST API. This
-    architecture of microservices and chosen protocol allow simple development of 
-    agents which can be written in any programming language. In RHQ only Java agent were
-    available. Hawkular as product is customized Wildfly
-    \footnote{An open source project of JBoss Enterprise Application Platform.}
-    application server with all components deployed in it.
-
-    \begin{itemize}
-        \item Console\,--\,user web interface
-        \item Accounts\,--\,authorization subsystem based on Keycloak\footnote{An open
-            source single sing-on and identity management for RESTful web services.}
-        \item Inventory\,--\,graph based registry of all entities in Hawkular
-        \item Metrics\,--\,time series metrics engine based on Cassandra\footnote{An open
-            source distributed database management system. Hybrid between key-value and
-        column\,--\,oriented database.}
-        \item Alerts\,--\,alerting subsystem based on JBoss Drools
-    \end{itemize}
-
-    Some of the modules uses also Java messaging topics (JMS) for inter-component
-    one to many communication.
-
-    Modules are packaged as standard Java web archives (WAR), or enterprise archives (EAR)
-    and deployed into customized Wildfly. Build and package management is performed by 
-    Maven and Gulp for user interface modules. 
-
-    \section{Data Mining Goals}
-    The goal of this thesis is to develop module for Hawkular which will provide forecasts for any 
-    time series metrics collected by agent. On new metric data available the module
-    learns from data and predicts new values. Based on this predicted values an alert can
-    be triggered. Forecast should be also available for user interface in predictive
-    charts. 
-
-    One Wildfly agent on average collects hundreds to thousands metrics, therefore module
-    should be capable of processing high volume of data. Some of the customers monitor
-    hundreds of server each with multiple agents. Therefore performance of chosen 
-    learning algorithm has to be taken in account.
-
+% Cross-Referencing Conventions:
+% chap: chapter
+% sec: section
+% appen: everything from appendix
+%
+% eq: equation
+% img: image
+% tab: table
+% alg: algorithms
+%
+% example \label{img:foo-foo}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Time Series Models} \label{models}
-This chapter focuses on time series theory and various approaches for modelling time series.
-Models are ordered from simpler to more complex ones. 
+\chapter{Introduction} \label{chap:introduction}
+In driving successful business on the internet it is important to assure an application health and reliability. One
+can achieve that by monitoring subjected resources and setting up clever alerting system.
 
-Firstly, it is important to define time series; it is sequence of observations
-$s_t \in \mathbb{R}$ ordered in time. This thesis focuses only on univariate equidistant 
-discrete time series. Time series analysis contains many segments, this work focuses on 
-forecasting. It is defined as a process of making prediction of the future based 
-on the past. In other words, forecasting is possible because  
-future depends on the past or analogously because there is a relationship
-between the future and the past. However, this relation is not deterministic and 
-can be hardly written in an analytical form.
+These features are offered in many monitoring systems, however being predictive in this area can even prevent
+undesirable states and most importantly gives administrators more time for reacting to such events. For instance it
+can decrease downtime of an application or ability to load balance workload in advance by horizontal scaling of
+targeted services.
 
-There are two forecasting types: qualitative and quantitative.
-Qualitative methods are mainly based on the opinion of the subject and are used 
-when past data are not available, hence not suitable for this project. 
-If there are past data available, quantitative forecasting methods are more suitable. 
+Alerting system are sophisticated and can be composed by many conditions. This work focuses on predicting future
+metric values which are then sent as input for evaluation to alerting system.
 
-TODO mention that we talk only about models which makes sense to use in our environment.
+The work starts with time series theory by describing various approaches for time series modelling and forecasting.
+The chapter describes models which are used within the work, could be used or explains why the decision was made to
+use other models.
+
+Following chapter demonstrates models from previous chapter on real time series. It visually shows predictive
+capabilities of targeted models and compares produced statistical quantities.
+
+The third chapter briefly describes existing monitoring and management solutions which are to some extend
+Hawkular competitors. There are also mentioned Java libraries for time series forecasting.
+
+The fourth chapter describes implementation part of the thesis. It starts with core artifacts for time series
+forecasting and continues to building web application and integration into Hawkular.
+
+The last chapter is dedicated to the evaluation of the forecasting accuracy of the implemented solution. As a default
+implementation were chosen models from \texttt{forecast} package from language R.
 
     %%%%%%%%
-    \section{Simple quantitative methods}
-    Following methods are the simples forecasting quantitative models. They can be used on
-    any time series without further analysis. 
+    \section{Hawkular} \label{sec:hawkular}
+    The implementation part of the master's thesis is developed as a part of an open source project
+    Hawkular\footnote{Available at \url{http://www.hawkular.org}}. Therefore the application architecture and used
+    technologies had to fit into the overall project design.
+
+    Hawkular is middleware monitoring and management platform developed by company Red Hat and independent community
+    of contributors. It is a successor to very successful RHQ\footnote{Available at
+    \url{https://rhq-project.github.io/rhq/}.} project, also known as JBoss Operations Network (JON). By monitoring
+    is meant that there are agents for diverse applications which push data to the server. These agents can also
+    execute application specific actions.
+
+    The monolithic architecture of the RHQ project was due its size hard to maintain and lacking robust REST API lead to
+    fresh development of new application. In contrast Hawkular consist of several loosely coupled or even independent
+    applications. These independent components are much easier to maintain and more importantly they communicate over
+    REST API.
+
+    This architecture of microservices and chosen protocol allow simple development of agents which can be
+    written in any programming language. In RHQ only Java agent were available.
+
+    Hawkular as a product is customized
+    Wildfly\footnote{An open source project of JBoss Enterprise Application Platform.} application server with all
+    components deployed in it.
+
+    List of Hawkular main components:
+    \begin{itemize}
+        \item Console\,--\,user web interface.
+        \item Accounts\,--\,authorization subsystem based on Keycloak\footnote{An open
+            source single sing-on and identity management for RESTful web services.}.
+        \item Inventory\,--\,graph based registry of all entities in Hawkular.
+        \item Metrics\,--\,time series metrics engine based on Cassandra\footnote{An open
+            source distributed database management system. Hybrid between key-value and
+        column-oriented database.}.
+        \item Alerts\,--\,alerting subsystem based on JBoss Drools.
+    \end{itemize}
+
+    Some of the modules also uses Java messaging topics (JMS) for inter-component one to many communication.
+
+    Modules are packaged as standard Java web archives (WAR), or enterprise archives (EAR) and deployed into
+    customized Wildfly. Build and package management is performed by Maven and Gulp for user interface modules.
+
+    %%%%%%%%
+    \section{Data Mining Goals} \label{sec:goals}
+    The goal of this thesis is to develop a module for Hawkular which will provide forecasts for any time series
+    metrics collected by agent.
+
+    On new metric data available the module learns from data and predicts new values. Based on this predicted values
+    an alert can be triggered. Forecast should be also available for user interface in predictive charts.
+
+    One Wildfly agent on average collects hundreds to thousands metrics, therefore module should be capable of
+    processing high volume of data. Some of the customers monitor hundreds of server each with multiple agents.
+    Therefore performance of chosen learning algorithm has to be taken in the account.
+
+    %%%%%%%%
+    \section{Metrics in Hawkular} \label{sec:metrics-in-hawkular}
+    In Hawkular there are three types of metrics: gauge, counter and availability. All of them are univariate metrics
+    of structure \\$\{timestamp, value\}$. Each of these types is used for collecting dedicated types of metric data.
+    For example gauge can increase or decrease over the time, counter is monotonically decreasing or increasing and
+    availability represents up or down state of a resource.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Time Series Models} \label{chap:models}
+This chapter focuses on time series theory and various approaches for time series modelling. Models are
+ordered from simpler to more complex ones. Only some of the discussed models are selected for the implementation.
+Chapter also adds some theory necessary for time series analysis, for example stationarity tests \ref{sec:adf},
+seasonal decomposition \ref{sec:decomposition} and period identification \ref{sec:period-detection}.
+
+From the goals \ref{sec:goals} results that selected time series models should be robust enough to work on arbitrary
+monitored time series and at the same time be computationally in expensive. In learning and forecasting process.
+
+Firstly, it is important to define time series; it is a sequence of observations $s_t \in \mathbb{R}$ ordered in time.
+This thesis focuses only on univariate equidistant discrete time series.
+
+Time series analysis contains many segments, this work aims only on forecasting. It is defined as a process of making
+prediction of the future based on the past. In other words, forecasting is possible because future depends on the
+past or analogously because there is a relationship between the future and the past. However, this relation is not
+deterministic and can be hardly written in an analytical form \cite{otexts}.
+
+Generally there are two forecasting types: qualitative and quantitative. Qualitative methods are mainly based on the
+opinion of the subject and are used when past data are not available, hence not suitable for this project. If there
+are past data available, quantitative forecasting methods are more suitable.
+
+    %%%%%%%%
+    \section{Simple quantitative methods} label{sec:simple-models}
+    Following methods are the simples forecasting quantitative models. They can be used on any time series without
+    any prerequisites or further analysis.
 
     \begin{itemize}
-        \item Average method\,--\,forecasts are equal to the value of the mean of
-            historical data.
+        \item Average method\,--\,forecasts are equal to the value of the mean of historical data.
             \begin{eqnarray}
                 \hat{y}_{T+h|T} = \overline{y} = (y_{1}+ \dots + y_{T}) / T 
             \end{eqnarray}
@@ -109,40 +138,39 @@ TODO mention that we talk only about models which makes sense to use in our envi
             \begin{eqnarray}
                 \hat{y}_{T+h|T} = y_{T}
             \end{eqnarray}
-        \item Drift method\,--\,variation of na\"{i}ve method which allow the
-            forecasts to increase or decrease over time.
+        \item Drift method\,--\,variation of na\"{i}ve method which allow the forecasts to increase or decrease
+            over time.
             \begin{eqnarray}
                 \hat{y}_{T+h|T} = y_{T} + \frac{h}{T-1} \sum_{t=2}^T{y_{t} - y_{t-1}} = 
                     y_{T} + h(\frac{y_{T}-y_{1}}{T-1}) 
             \end{eqnarray}
-
     \end{itemize}
-    There is also a seasonal variant of na\"{i}ve model. This method is suitable only
-    for highly seasonal data. These methods in general produces high forecasting error 
-    but are very easy to implement.
+
+    There are also a seasonal variants of these models which holds one model for each season. These methods in general
+     produces high forecasting error but are very easy to implement.
 
     %%%%%%%%
     \section{Linear Regression} \label{sec:linear-regression}
-    Linear regression is classical statistical analysis technique. It is often used to
-    determine whether there is linear relationship between dependent and eventually more
-    independent variables. It is also often used for predictions mainly in econometric
-    field. 
+    Linear regression is a classical statistical analysis technique. It is mostly used to determine whether there is
+    linear relationship between dependent and eventually more independent variables \cite{cipra}. It is also used for
+    predictions mainly in econometric field.
 
     Simple linear regression is defined as:
-    \begin{eqnarray}
+
+    \begin{eqnarray} \label{eq:linear-regression}
         y = \beta_0 + \beta_1 x + \epsilon
     \end{eqnarray}
 
-    Parameters $\beta_0$ and $\beta_1$ are calculated by minimizing the sum of squared
-    errors:
+    Parameters $\beta_0$ and $\beta_1$ are calculated by minimizing the sum of squared errors:
     
-    \begin{eqnarray}
+    \begin{eqnarray} \label{eq:linear-regression-estimation}
         SSE = \sum_{i=1}^N \epsilon_{i}^2 = \sum_{i=1}^N (y_i - \beta_0 - \beta_1 x_i)^2
     \end{eqnarray}
     
-    Once parameters are estimated predictions for any time in the future can be calculated. 
-    If modelled time series is not stationary then and for instance trend changes over
-    time parameters has to be periodically estimated to achieve better accuracy. 
+    Once the parameters are estimated predictions for any time in the future can be calculated. If modelled time
+    series is not stationary and trend changes over time parameters should be periodically reestimated to achieve
+    better forecasting accuracy. So the regression model does not adapt if the underlying time series changes.
+
     %For econometric analysis it is important to use best linear unbiased estimator,
     %where couple of assumptions has to hold:
     %\begin{enumerate}
@@ -155,117 +183,122 @@ TODO mention that we talk only about models which makes sense to use in our envi
     %Where $i$ takes values from $1$ to the number of observed values. These assumptions 
 
     %%%%%%%%
-    \section{Simple Exponential Smoothing}
-    The concept behind simple exponential smoothing is to attach 
-    larger weights to the most recent observations than to observations from distant
-    past. Forecasts are calculated using weighted averages where the weights 
-    decrease exponentially as observations come from further in the past.
-    In other words smaller weights are associated to older observations.
-    Equation for simple exponential smoothing is listed in \ref{exp_smoothing}.
+    \section{Simple Exponential Smoothing} \label{sec:simple-ex}
+    The concept behind simple exponential smoothing is to attach larger weights to the most recent observations than
+    to the observations from distant past. Forecasts are calculated using weighted averages where the weights
+    decrease exponentially as observations come from further in the past \cite{hyndman-state-space}. In other words
+    smaller weights are associated to older observations. Equation for simple exponential smoothing is listed in
+    \ref{eq:simple-ex}.
 
-    \begin{gather} \label{exp_smoothing}
+    \begin{gather} \label{eq:simple-ex}
          \hat{y}_{T+1|T} = l_t \\ \nonumber
          l_t = \alpha y_t + (1-\alpha)l_{t-1}
     \end{gather}
 
     For smoothing parameter $\alpha$ holds $ 0 \leq \alpha \leq 1 $. Note, if $\alpha = 1$ then \\
-    $\hat{y}_{T+1|T} = y_{T}$ so forecasts are equal to the na\"{i}ve method.
-    If the parameter $\alpha $ is smaller more weight is given to observations from distance
-    in past. 
+    $\hat{y}_{T+1|T} = y_{T}$ so forecasts are equal to the na\"{i}ve method. If the parameter $\alpha $ is smaller
+    more weight is given to the observations from distance in the past.
 
-    Simple exponential smoothing has flat forecast function, that means all forecasts
-    all the same. Smoothing can be generally used as technique to separate signal and noise.
-    This method is useful if a series does not contain any trend or one is interested only
-    in one step ahead prediction. Multi step ahead predictions for time series with trend
-    can produce high error.
+    Simple exponential smoothing has flat forecast function, that means all forecasts all the same. Smoothing can be
+    generally used as technique to separate signal and noise. This method is useful if a series does not contain any
+    trend or one is interested only in one step ahead prediction. Multi step ahead predictions for time series with
+    trend usually produce high error.
 
     %%%%%%%%
-    \section{Holt's Liner Trend Method}
-    Simple exponential smoothing can be extended to allow forecasting of data with a trend. 
-    This was done by Charles C. Holt in 1957. This method is slightly more complicated than 
-    original one without trend. In order to add trend component another equation has to be added. 
+    \section{Holt's Liner Trend Method} \label{sec:double-ex}
+    Simple exponential smoothing can be extended to allow forecasting of data with a trend. This was done by
+    Charles C. Holt in 1957. This method is slightly more complicated than original one without trend.
+    In order to add trend component another equation has to be added \ref{eq:holt}.
 
-    \begin{gather} \label{exp_holt}
+    \begin{gather} \label{eq:holt}
         \hat{y}_{t+h|t} = l_{t} + hb_{t} \\ \nonumber
          l_t = \alpha y_t + (1 - \alpha) (l_{t-1} + b_{t-1}) \\ \nonumber
          b_t = \beta (l_t - l_{t-1}) + (1 - \beta)b_{t-1} 
     \end{gather}
 
-    Where a parameter $b_t$ denotes a slope of the series and the parameter $l_t$ level. 
-    There is also a new parameter smoothing parameter of the slope\,--\,$\beta$. 
-    It's rage is equal to $\alpha$, so $\alpha,\beta \in \interval[{0,1}]$. 
+    Where a parameter $b_t$ denotes a slope of the series and the parameter $l_t$ level. There is also a new smoothing
+    parameter for the slope\,--\,$\beta$. Its rage is equal to $\alpha$, so $\alpha,\beta \in \interval[{0,1}]$.
 
     %%%%%%%%
-    \section{Holt-Winters Seasonal Method}
-    This method is an extension of Holt's linear trend method with added
-    seasonality. It is also called triple exponential smoothing. In this model 
-    there are three equations \ref{exp_holt_winters}. 
-    One for level, second for trend and third for seasonality.
-    Each pattern uses smoothing constant $ \alpha,\beta,\gamma \in \interval[{0,1}]$.
+    \section{Holt-Winters Seasonal Method} \label{sec:triple-ex}
+    This method is an extension of Holt's linear trend method with added seasonality. It is also called triple
+    exponential smoothing. In this model there are three equations \ref{eq:holt-winters}. One for level, second for
+    trend and third for seasonality. Each pattern uses smoothing constant $ \alpha,\beta,\gamma \in \interval[{0,1}]$.
 
-    \begin{gather} \label{exp_holt_winters}
+    \begin{gather} \label{eq:holt-winters}
         \hat{y}_{t+h|t} = l_{t} + hb_{t} + s_{t+h_m-m}\\ \nonumber
         l_t = \alpha (y_t - s_{t-m}) + (1 - \alpha) (l_{t-1} + b_{t-1}) \\ \nonumber
         b_t = \beta (l_t - l_{t-1}) + (1 - \beta)b_{t-1} \\ \nonumber
         s_t = \gamma (y_t - l_{t-1} - b_{t-1}) + (1-\gamma)s_{t-m}
     \end{gather}
 
-    Where $h_m=[(h-1) \mod m] + 1$, which ensures that the estimates of the seasonal
-    indices came from the correct season. This model can be used only if the period 
-    of time series is know beforehand. In Hawkular the period of the time series is 
-    unknown, therefore period identification should be also implemented.
-    
+    Where $h_m=[(h-1) \mod m] + 1$, which ensures that the estimates of the seasonal indices came from the correct
+    season. This model can be used only if the period of time series is know beforehand. In Hawkular the period  of
+    the time series is unknown, therefore period identification should be also implemented.
+
+    Each exponential smoothing model contains parameters which should be precisely estimated ($\alpha, \beta,
+    \gamma$). But it is possible to use default values from literature. However, with default values models produce
+    higher forecasting error than with estimated parameters. Estimation process defines objective function which
+    value can be mean squared error, mean absolute error or likelihood. Then this objective function is passed to
+    non-linear optimization algorithm.
+
+    Time complexity of exponential smoothing models for learning $n$ observations is $O(n)$. With enabled optimization
+    the complexity depends on used optimization algorithm.
+
+    Exponential smoothings have advantage over other more complicated models that if a system needs to achieve high
+    performance than default parameters can be used. This would not be possible with ARIMA models.
+
     %%%%%%%%
-    \section{Box\,--\,Jenkins Methodology (ARIMA)}
-    Models from Box\,--\,Jenkins methodology are the most widely used in time series
-    analysis specially for econometric data. This methodology is based on analysis of autocorrelation (ACF)
-    and partial autocorrelation (PACF) functions.
+    \section{Box\,--\,Jenkins Methodology (ARIMA)} \label{sec:arima}
+    Models from Box\,--\,Jenkins methodology are the most widely used in time series analysis for econometric data.
+    This methodology is based on analysis of autocorrelation (ACF) and partial autocorrelation (PACF) functions.
     
     The most generic model is ARIMA(p, d, q). It combines together autoregressive, integrated and
-    moving average models. An autoregressive model (AR) consist of sum of weighed lagged observations. It is listed
-    in \ref{ar_model}. The order of this model is defined by $p$ and can be determined from PACF function \cite{cipra}.
-    A moving average model (MA) is sum of weighted errors of order $q$. The order of this part can be
-    determined from ACF function \cite{cipra}. The last part of the model is used when a time series is non stationary.
-    There are several ways how to make a  particular time series stationary. Box\,--\,Jenkins methodology uses
-    differencing\,--\,integration part. The order if differencing original series is denoted by $d$ letter. Usually
-    first order differences are enough to make time series stationary.
+    moving average parts. An autoregressive model (AR) consist of sum of weighed lagged observations \ref{eq:ar-model}.
+    The order of this model is defined by $p$ and can be determined from PACF function \cite{cipra}.
 
-    Parameters of the model, including AR and MA part can by estimated by non-linear
-    least squares or maximum likelihood estimation \cite{brockwell}. For successful estimation a certain number of
-    historical points needs to be available. In \cite{cipra} minimal training size is set to at least fifty
-    observations.
-
-    \begin{gather} \label{ar_model}
+    \begin{gather} \label{eq:ar-model}
         y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \epsilon_t \\ \nonumber
         \epsilon_t \overset{iid}{\sim} N(0, \sigma^2)
     \end{gather}
 
-    Moving averages model should not be confused with simple moving average which is
-    used for trend estimation. In moving average model MA(q) the current value is
-    a regression against white noise of prior values of the series \cite{wiki-ma-model}. A random noise from
-    each point is assumed to come from the same distribution which typically is 
-    a normal distribution. Model of the order $q$ is listed in \ref{ma_model}.
+    A moving average model (MA) is sum of weighted errors of order $q$. The order of this part can be determined
+    from ACF function \cite{cipra}. Moving averages model should not be confused with simple moving average from
+    \ref{sec:simple-ex} which is used for trend estimation. In moving average model MA(q) the current value is a
+    regression against white noise of prior values of the series \cite{wiki-ma-model}. A random noise from each
+    point is assumed to come from the same distribution which typically is a normal distribution.  Model of the order
+    $q$ is listed in \ref{eq:ma-model}.
 
-    \begin{gather} \label{ma_model}
+    \begin{gather} \label{eq:ma-model}
         y_t = \theta_1 \epsilon_{t-1} + \theta_2 \epsilon_{t-2} + \dots + \theta_p y_{t-q} + \epsilon_t \\ \nonumber
         \epsilon_t \overset{iid}{\sim} N(0, \sigma^2)
     \end{gather}
 
-    It is important mention that models AR(p) and MA(q) are invertible.
-    Therefore any stationary AR(p) model can be written as MA($\infty$) and with some assumptions
-    vice versa \cite{brockwell}. ARIMA model is often written with backshift operator $By_t=y_{t-1}$.
-    With this operator \\ARIMA(p, d, q) is listed in \ref{arima}. On the left side of the equation is AR(P) process
-    and on the right MA(q).
+    The last part of the model is used when a time series is non stationary. There are several ways how to make a
+    particular time series stationary. Box\,--\,Jenkins methodology uses differencing\,--\,integration part I(d).  The
+    order of differentiated original series is denoted by $d$ letter. Usually first order differences are enough to
+    make a time series stationary.
 
-    \begin{gather} \label{arima}
+    It is important to mention that models AR(p) and MA(q) are invertible. Therefore any stationary AR(p) model can
+    be written as MA($\infty$) and with some assumptions vice versa \cite{brockwell}. ARIMA model is often written
+    with backshift operator $By_t=y_{t-1}$. With this operator \\ARIMA(p, d, q) is listed in \ref{eq:arima}. On the
+    left side of the equation is AR(P) process and on the right MA(q).
+
+    \begin{gather} \label{eq:arima}
         (1- \phi_1B - \dots - \phi_pB^p)(1-B)^d y_t = \\ \nonumber
          c + (1+\theta_1B+\dots+\theta_qB^q) \epsilon_t
     \end{gather}
 
+    The parameters of the model, including AR and MA part can by estimated by non-linear optimization algorithm
+    with likelihood as objective function \cite{brockwell}. However this function is much more complicated than for
+    exponential smoothings. For successful estimation a certain number of historical points needs to
+    be available. In \cite{cipra} minimal training size is set to at least fifty observations.
+
     After this theoretical part it is clear that ARIMA models are more complicated than family of moving averages.
-\newpage
+    To this also refers \cite{hyndman-forecasting} and adds that ARIMA less robust than exponential smoothings.
+
     %%%%%%%%
-    \section{Artificial Neural Networks}
+    \section{Artificial Neural Networks} \label{sec:ann}
     Recently a large number of successful applications using neural networks for time series modeling show that they
     can produce valuable results \cite{ann-forecasting-state-art}. There are several non trivial issues with
     determining the appropriate architecture of the network. This has to be taken into account because it can
@@ -278,13 +311,13 @@ TODO mention that we talk only about models which makes sense to use in our envi
     environment.
 
     %%%%%%%%
-    \section{Time series decomposition}
+    \section{Time series decomposition} \label{sec:decomposition}
     In modelling time series it is sometimes necessary to decompose series to trend, seasonal and random component
     \cite{otexts}. It is also used for initialization seasonal indices in triple exponential smoothing.
 
     \begin{itemize}
         \item \textbf{Trend $ T_{t} $}\,--\,exists if there is long term increase or decrease over
-            time. Can be linear or nonlinear (e.g. exponential growth)
+            time. Can be linear or nonlinear (e.g. exponential growth).
         \item \textbf{Seasonal $ S_{t} $}\,--\,exists when a series is influenced by seasonal factors.
             Seasonality is always of fixed and known period.
         \item \textbf{Cyclic $ C_{t} $}\,--\,exists it there are long term wave-like patterns.
@@ -293,19 +326,19 @@ TODO mention that we talk only about models which makes sense to use in our envi
             noise. 
     \end{itemize}
 
-    Decomposition can be written in many forms. Two of them are additive and multiplicative \ref{decomposition}.
-    Which one to use depends on the underlying time series model.
+    Decomposition can be written in many forms. Two of them are additive \ref{eq:decom-additive} and multiplicative
+    \ref{eq:decom-multi}. Which one to use depends on the underlying time series model.
 
-    \begin{eqnarray} \label{decomposition}
+    \begin{gather} \label{eq:decom-additive}
         y_{t} = T_{t} + S_{t} + C_{t} + E_{t} \\
-        y_{t} = T_{t} \times S_{t} \times C_{t} \times E_{t}
-    \end{eqnarray}
+        y_{t} = T_{t} \times S_{t} \times C_{t} \times E_{t} \label{eq:decom-multi}
+    \end{gather}
 
     An algorithm for additive decomposition consist of following steps:
 
     \begin{itemize}
         \item Compute a trend component $\hat{T}_t$ using moving average model. If a period is even use
-        $2 x MA(period)$. If period is an odd number use $MA(period)$. $2 x MA$ for even period is used because it
+        $2 x MA(period)$. If period is an odd use $MA(period)$. $2 x MA$ for even period is used because it
         has to be symmetric.
         \item Calculate detrended series $y_t - \hat{T}_t$.
         \item Estimate seasonal indices $\hat{S}_t$ for each period by averaging values of given period. For example,
@@ -316,22 +349,22 @@ TODO mention that we talk only about models which makes sense to use in our envi
     \end{itemize}
 
     %%%%%%%%
-    \section{Augmented Dickey\,--\,Fuller Test}
+    \section{Augmented Dickey\,--\,Fuller Test} \label{sec:adf}
     Time series statistical tests are often used for testing if there is particular characteristics present in time
-    series. Unit root test are used whether a time series in non stationary. In this work Augmented \\Dickey\,--\,Fuller
-    (ADF) test was chosen for unit root testing. It's null hypothesis $H_0$ is time series contains a
-    unit root\,--\,it is not stationary. Outcome of this test is a negative ADF statistics. The more negative it is
-    the stronger the rejection of the hypothesis. The full form of ADF test is listen in \ref{adf-test}.
+    series. Unit root test are used whether a time series is non stationary. In this work Augmented \\Dickey\,--\,Fuller
+    (ADF) test was chosen for unit root testing.
 
-    \begin{gather} \label{adf-test}
+    Its null hypothesis is $H_0$: time series contains a unit root\,--\,it is not stationary. Outcome of this test
+    is a negative ADF statistics. The more negative it is the stronger the rejection of the hypothesis.
+    The full form of ADF test is listen in \ref{eq:adf-test}.
+
+    \begin{gather} \label{eq:adf-test}
         \Delta y_t = \alpha + \beta t + \gamma \Delta y_{t-1} + \dots + \delta{p-1} \Delta y_{t-p+1} + \epsilon_t \\
-        ADF = \frac{\hat{\gamma}}{SE(\hat{\gamma})} \label{adf-stat}
+        ADF = \frac{\hat{\gamma}}{SE(\hat{\gamma})} \label{eq:adf-stat}
     \end{gather}
 
-\newpage
-
-    There are multiple variants of ADF test. Some of them leave out some parts of equation \ref{adf-test}.
-    The most important ones and widely used are:
+    There are multiple variants of ADF test. Some of them leave out parts of equation \ref{eq:adf-test}. The most
+    important ones and widely used are:
 
     \begin{itemize}
         \item \emph{nc}\,--\,for regression with no constant nor time trend ($\beta t$)
@@ -340,19 +373,19 @@ TODO mention that we talk only about models which makes sense to use in our envi
     \end{itemize}
 
     Each of them is good for testing particular type of stationarity. For example for testing if there is time trend
-    present in the time series \emph{c} version is best choice.
+    present in the time series \emph{c} version is the best choice.
 
-    The implementation of this test is to fit multiple linear regression model of equation \ref{adf-test}. Then
-    calculate ADF statistics with \ref{adf-stat}. SE denotes standard error of estimated $\hat{\gamma}$.
+    The implementation of this test fits multiple linear regression model from equation \ref{eq:adf-test}. Then
+    calculate ADF statistics with \ref{eq:adf-stat}. SE denotes standard error of estimated $\hat{\gamma}$.
 
     %%%%%%%%
-    \section{Seasonality detection}
-    Forecasting engine in Hawkular system does not have any inside information of period of a time series being
+    \section{Seasonality detection} \label{sec:period-detection}
+    Forecasting engine in Hawkular system does not have any inside information about period of a time series being
     modelled. Therefore automatic period identification has to be implemented. In practice it is a difficult task and
     result often differs from correct period, specially if there is significant noise present in the series
     \cite{period-meteo}.
 
-    There are several ways how to implement automatic period identification. The most used ones are based on
+    There are several approaches how to implement automatic period identification. The most used ones are based on
     autocorrelation function (ACF) or spectral density \cite{period-hydman}. This work applies ACF method.
     In the following chart \ref{img:period-acf} ACF function of sine function is shown. The period of this
     function is seven. There are patterns repeated every seven observations and it is decreasing to zero.
@@ -360,19 +393,19 @@ TODO mention that we talk only about models which makes sense to use in our envi
     \begin{figure}[H]
         \begin{center}
             \scalebox{0.73}[0.6]{\includegraphics{img/acf-sine.pdf}}
-            \caption{ACF of sine function.}
+            \caption{Autocorrelation function of sine function.}
             \label{img:period-acf}
         \end{center}
     \end{figure}
 
-    The algorithm for automatic period identification is demonstrated in \ref{alg:period-find}. It uses ACF function
-    It is looking for periodically significant values of ACF function. These values have to be decreasing to zero at
-    some rate. At the infinity lag ACF approach zero.
+    The algorithm for automatic period identification is demonstrated in \ref{alg:period-find}.
+    It is looking for periodically repeated significant values of ACF function. At some rate these values have to
+    be decreasing to zero. In the infinity ACF function converges to zero.
 
-    The algorithm first calculates autocorrelation function of input time series and it finds index of the highest
-    value. Follows checking it checks if there are significant values of ACF present at following $n*period$
-    indices of autocorrelation function. There have to be present at lease two consecutive values of ACF, so $n$ takes
-    values from $1,2,3\dots$
+    The algorithm as input takes only time series. If there is a unit root present differencing is applied.
+    Follows calculation of autocorrelation function of input time series and finding the index of its highest
+    value. Then it checks if there are significant values of ACF present at following $n*period$ indices.
+    There have to be present at lease two consecutive values of ACF, so $n$ takes values from $1,2,3\dots$
 
     \begin{algorithm}
         \caption{Find period of time series} \label{alg:period-find}
@@ -388,47 +421,37 @@ TODO mention that we talk only about models which makes sense to use in our envi
                 \If{$checkPeriodExists(x, ts)$}
                     \State \Return $period$
                 \EndIf
-                $period \gets findHighest(ts, period)$
+              \State $period \gets findHighest(ts, period)$
             \EndWhile
-            \State \Return $0$
+            \State \Return $1$
         \EndFunction
         \end{algorithmic}
     \end{algorithm}
 
-    %%%%%%%%
-    % \section{Optimization Algorithms}
-    % TODO
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Models Demonstration}
-In the previous chapter several models for forecasting were discussed, however in Hawkular only a few of them were
-selected and implemented. It is because various time complexity of the models and more important robustness in terms of
-being able to produce accurate results for higher range of modelled time series.
-Following model evaluations and graphs are generated using statistical system R.
+\chapter{Analytical Forecasting Process} \label{chap:models-demonstration}
+In the previous chapter several time series models were described. However, in Hawkular only a few of them were
+selected and implemented.
+
+This chapter demonstrates targeted models on real time series. There is also conducted a
+statistical comparison of the models. So this chapter also contains theory how different models should be compared. At
+the end there is a discussion which models were selected for usage in Hawkular.
 
     %%%%%%%%
-    \section{Metrics in Hawkular}
-    In Hawkular there are three types of metrics: gauge, counter and availability. All of them are univariate metrics
-    of structure \\$\{timestamp, value\}$. Each of these types is used for collecting dedicated types of metric data.
-    For example gauge can increase or decrease over the time, counter is monotonically decreasing or increasing and
-    availability represents up or down state of a resource.
+    \section{Evaluating Forecasting Accuracy} \label{sec:mse-mae}
+    In order to evaluate a forecasts produces by a particular model it is important to calculate the errors of the
+    forecasts. There are several statistics for evaluating forecasting errors. The most used ones are mean squared
+    error (MSE) \ref{eq:accuracy-mse} and mean absolute error (MAE) \ref{eq:accuracy-mae} \cite{statistika}. The
+    difference between them is that MSE emphasizes the extremes while MAE is more robust to outliers
+    \cite{hyndman-forecasting}.
+
+    \begin{gather} \label{eq:accuracy-mse}
+         MSE = \frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y_i}) \\
+         MAE = \frac{1}{n} \sum_{i=1}^{n} \abs{y_i - \hat{y_i}} \label{eq:accuracy-mae}
+    \end{gather}
 
     %%%%%%%%
-    \section{Evaluating Forecasting Accuracy}
-    In order to evaluate model it is important to estimate an error of the forecast. There are 
-    several statistics for evaluating forecasting errors. The most used ones are mean squared error (MSE)
-    \ref{accuracy-mse} and mean absolute error (MAE) \ref{accuracy-mae}. The difference between them is that MSE
-    emphasizes the extremes while MAE is more robust to outliers.
-
-    \begin{subequations} \label{accuracy}
-        \begin{align} \label{accuracy-mse}
-             MSE = \frac{1}{n} \sum_{i=1}^{n}(y_i - \hat{y_i}) \\ \label{accuracy-mae}
-             MAE = \frac{1}{n} \sum_{i=1}^{n} \abs{y_i - \hat{y_i}}
-         \end{align}
-    \end{subequations}
-
-    %%%%%%%%
-    \section{Model Selection} \label{model-selection}
+    \section{Measuring Model Quality} \label{sec:model-quality}
     When comparing multiple models, statistics like MSE or MAE are not the best objective functions. Comparison
     based on this statistics can select complicated model with lots of parameters, which may overfits training data
     and most importantly it selects less robust model \cite{cipra}. Therefore for comparing multiple models another
@@ -436,50 +459,59 @@ Following model evaluations and graphs are generated using statistical system R.
     most used criteria for model sections are: Akaike information criterion (AIC) and Bayesian information
     criterion (BIC). Model with lower information criterion is preferred.
 
-    \begin{gather} \label{aic}
+    \begin{gather} \label{eq:aic}
         AIC = 2 k - \ln(L) \\ \nonumber
         BIC = k \ln(n) - 2 \ln(L)
     \end{gather}
 
-    Equations for AIC and BIC are listed in \ref{aic}. Number of parameters of the model represents $k$, $n$ is number
-    of observations and $L$ is maximized value of the likelihood function of the model. In case for exponential
-    smoothing it is minimized sum of squared error of one step ahead prediction of training data set. From the
-    equations it can be seen that BIC penalizes models with more parameters. There is also AIC criterion with
-    correction form \ref{aicc}. Corrected version of AIC more penalizes longer models.
+    Equations for AIC and BIC are listed in \ref{eq:aic}. Number of parameters of the model represents $k$, $n$ is
+    number of observations and $L$ is maximized value of the likelihood function of the model. In case for exponential
+    smoothing it is minimized sum of squared error of one step ahead prediction of training data set.
 
-    \begin{eqnarray} \label{aicc}
+    From the equations it can be seen that BIC penalizes models with more parameters. There is also AIC criterion with
+    correction form \ref{eq:aicc}. Corrected version of AIC more penalizes longer models.
+
+    \begin{eqnarray} \label{eq:aicc}
         AICc = AIC + \frac{2k(k+1)}{n-k-1}
     \end{eqnarray}
 
     %%%%%%%%
-    \section{Evaluation on Data}
-    An analytical process of modelling time series advise to plot the data and fit various models chosen by an
-    forecaster previous experience. In second step compare statistics of those models and choose one the best describes
-    data. However, this approach can be used only if a process of modelling is conducted by human being.
+    \section{Models Demonstration} \label{sec:models-demonstration}
+    An analytical process of modelling time series starts with plotting the data and fitting various models chosen by
+    forecaster's previous experience. In second step forecaster compares statistics of those models and choose one the
+    best describes data.
 
-    In this section a real time series is modelled using time series discussed in section \ref{models}.
+    In this section a real time series is modelled using time series discussed in chapter \ref{chap:models}.
     Chosen time series is \emph{austourists} from R package \texttt{fpp}. This series is a measurement of quarterly
-    visitor nights spent by international tourists in Australia. It was chosen on purpose because it
-    contains trend and seasonality.
+    visitor nights spent by international tourists in Australia. It was chosen on purpose because it contains trend
+    and seasonality.
 
     In the first chart \ref{img:simple-models} there is depicted na\"{i}ve, average and drift model. Average model is
     just an overall average of the whole time series. It does not change over time. However there could be online
-    version of this algorithm for which an average would be calculated for each new value. Na\"{i}ve and drift model
-    copy values of time series with one step lag. These two models differs in forecasts. Drift model is capable of
-    capturing trends.
+    version of this algorithm for which an average would be calculated for each new value.
+
+    Na\"{i}ve and drift model copy values of time series with lag of one observation. These two models differs in
+    forecasts where drift model is capable of forecasting trends.
 
     \begin{figure}[H]
         \begin{center}
 %            \resizebox{12cm}{8cm}{\includegraphics{img/simple-models.pdf}}
-            \scalebox{0.255}[0.23]{\includegraphics{img/simple-models.pdf}}
+            \scalebox{0.255}[0.4]{\includegraphics{img/simple-models.pdf}}
             \caption{Simple models on \emph{austourists}.}
             \label{img:simple-models}
         \end{center}
     \end{figure}
 
+    Exponential smoothings are depicted in \ref{img:exp-smoothings}. For this particular series it is obvious that
+    seasonal model is the best describing modelled time series.
+
+    In the beginning it can be seen how is the seasonal model changing and learning the seasonal pattern from data.
+    Learning and adaptivity to new trends depends on smoothing parameters of the models. Higher values of parameters
+    allows the model quicker adapt to changes. Models with lower smoothing parameters are more robust to the changes.
+
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.255}[0.215]{\includegraphics{img/exp-smoothings.pdf}}
+            \scalebox{0.255}[0.27]{\includegraphics{img/exp-smoothings.pdf}}
             \caption{Exponential smoothings on \emph{austourists}.}
             \label{img:exp-smoothings}
         \end{center}
@@ -487,20 +519,15 @@ Following model evaluations and graphs are generated using statistical system R.
 
     \begin{figure}[H]
         \begin{center}
-            \scalebox{0.255}[0.25]{\includegraphics{img/arima-sarima.pdf}}
+            \scalebox{0.255}[0.27]{\includegraphics{img/arima-sarima.pdf}}
             \caption{Arima models on \emph{austourists}.}
             \label{img:arimas}
         \end{center}
     \end{figure}
 
-    Exponential smoothings are depicted in \ref{img:exp-smoothings}. For this particular series it is obvious that
-    seasonal is the best describing modelled time series. In the beginning can be seen how it the seasonal model
-    changing and learning the seasonal pattern from data. Learning and adaptivity to new trends depends on smoothing
-    parameters of the models. Higher values of parameters allows the model to quicker adapt to changes. Models with
-    lower smoothing parameters are more robust to the changes.
 
-    Arima models are showed in \ref{img:arimas}. Non seasonal model is already capable of capturing some seasonal
-    patterns but it is more random whereas seasonal patterns should be of fixed period. Therefore seasonal Arima with
+    ARIMA models are showed in \ref{img:arimas}. Non seasonal model is already capable of capturing some seasonal
+    patterns but it is more random whereas seasonal patterns should be of fixed period. Therefore seasonal ARIMA with
     dedicated model for each period is more appropriate.
 
     \begin{table}[h]
@@ -522,73 +549,90 @@ Following model evaluations and graphs are generated using statistical system R.
         \end{center}
     \end{table}
 
-    In \ref{tab:models-stat} are listed statistics produces by each model. Model with lowest one step ahead prediction
-    is seasonal Arima and triple exponential smoothing which is correct for highly seasonal time series such as this
-    one. For model selection would be used AIC statistics which is correlated to MSE.
+    In \ref{tab:models-stat} are listed statistics produces by each model. Models with the lowest one step ahead
+    prediction error are seasonal ARIMA and triple exponential smoothing which is correct for this highly seasonal time
+    series.
+
+    As it was discussed in \ref{sec:model-quality} for models comparison should be used AIC criterion. From the
+    table \ref{tab:models-stat} it can be seen that AIC and MSE are related, however MSE of double exponential smoothing
+    is $8.3$ times higher than MSE of triple exponential smoothing. Whereas AIC of double exponential smoothing is
+    only $1.3$ times higher. From this example it is obvious how AIC discriminates models with more parameters.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Existing Solutions}
-Before directly going to the design and implementation let's briefly look at existing monitoring solutions and libraries
-for time series modelling. In the next section are described not only direct competitors of Hawkular but also
-generally available software of this kind. Because Hawkular is still only an upstream project and not deliverable
-product for the customers thereby as alternative is considered Jboss Operations Network (JON). This work does not
-focus on comparison of monitoring applications. It is mentioned for more wider overview of this domain and also
-if some libraries can be used in the implementation.
+Before going directly to the design and implementation let's briefly look at existing monitoring solutions and libraries
+for time series modelling.
 
+In the next section are described not only direct competitors of Hawkular but also
+generally available software of this kind. Because Hawkular is still only an upstream project and not deliverable
+product for the customers thereby as its alternative is considered Jboss Operations Network (JON). This work does not
+focus on precise comparison of monitoring applications. It is only mentioned for more wider overview of this domain.
+
+    %%%%%%%%
     \section{Monitoring and Management Platforms}
     Out there are many monitoring solutions available. Some of them are offered as service (SaaS) and other need to be
     deployed in customer's environment. For each application are highlighted the most important features and how it
     differs from its rivals. It is also mentioned if the application offers predictive engine for metric data.
 
-    \subsection{New Relic}
-    New Relic was the first monitoring solution offered as SaaS \cite{new-relic}. It focuses on application performance
-    rather than infrastructure view. Java applications monitoring is done by agent. Because agent manipulates
-    with bytecote it is able to identify business transactions and monitor for instance utilization of REST endpoints
-    Agent also automatically identifies databases connected to the application being monitored. From alert
-    prediction perspective New Relic does not offer alert prediction or predictive charts.
+        %%%%%%%%
+        \subsection{New Relic}
+        New Relic was the first monitoring solution offered as SaaS \cite{new-relic}. It focuses on application
+        performance rather than infrastructure view. Monitoring of Java applications is done by an agent. Because
+        agent manipulates with bytecode it is able to identify business transactions and monitor for instance
+        utilization of REST endpoints. Agent also automatically identifies databases connected to the application
+        being monitored. From alert prediction perspective New Relic does not offer any alert prediction or
+        predictive charts.
 
-    \subsection{Dynatrace Ruxit}
-    Ruxit is another popular SaaS solution for monitoring middleware applications. Monitoring is also done by agents
-    which instruments bytecode so the application is also able to monitor business transactions. Ruxit differs from
-    others that it offers root cause analysis rather than firing multiple alerts. It directly shows causing problems
-    with visual representation \cite{ruxit}. Ruxit does not offer predictive alerting or charts.
+        %%%%%%%%
+        \subsection{Dynatrace Ruxit}
+        Ruxit is another popular SaaS solution for monitoring middleware applications. Monitoring is also done by agents
+        which instruments bytecode so the application is also able to monitor business transactions. Ruxit differs from
+        others that it offers root cause analysis rather than firing multiple alerts \cite{ruxit}. It directly shows
+        causing problems with visual representation. Ruxit does not offer any predictive alerting or charts.
 
-    \subsection{Open Source Projects}
-    As Hawkular is an open source project it is important to mention it's direct competitors from this area. There are
-    two major open source projects. The first one is Nagios and second Zabbix. Nagios was started in 1991 and Zabbix
-    in 2001 therefore both are more than fifteen years old. By the time of writing this thesis last contribution to
-    Nagios was from 17th September 2015 and Nagios project was active until the last moment. Both these projects does
-    not offer alert prediction.
+        %%%%%%%%
+        \subsection{Open Source Projects}
+        As Hawkular is an open source project it is important to mention its direct competitors from this area.
+        There are two major open source projects. The first one is Nagios and second Zabbix. Nagios was started in
+        1991 and Zabbix in 2001 therefore both are more than fifteen years old. In comparison to Hawkular, Ruxit or
+        New Relic the user interface of these two projects feels much older. By the time of writing this thesis
+        last contribution to Nagios was from 17th September 2015 and Nagios project was active until the last moment.
+        Both these projects does not offer alert prediction.
 
-    \subsection{HP OpenView and IBM Tivoli}
-    The biggest monitoring solutions offered by these two software giants are HP OpenView and IBM Tivoli. Both are
-    composed of many independent products. Solution from HP does not offer any predictive capabilities.
+        %%%%%%%%
+        \subsection{HP OpenView and IBM Tivoli}
+        The biggest monitoring solutions offered by these two software giants are HP OpenView and IBM Tivoli. Both are
+        composed of many independent products. Solution from HP does not offer any predictive capabilities.
 
-    Operations Analytics, one of IBM Tivoli products can automatically detect correlations between
-    metrics which can lead to detection of application issues, for example an anomaly detection. Another part of Tivoli
-    solution\,--\,Netcool Network Management is capable of predicting events. There is also another predictive analysis
-    in Tivoli Monitoring module\footnote{Available at
-    \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}.}
-    In the online document there is mentioned that predictive engine does not work on real time streams of data. Tivoli
-    is definitely big solution and in order to get real predictive capabilities it would require to contact IBM
-    support.
+        Operations Analytics, one of IBM Tivoli products can automatically detect correlations between
+        metrics which can lead to detection of application issues, for example an anomaly detection
+        \cite{tivoli-predictive-insights}.
 
-    \section{Libraries For Time Series Forecasting} \label{libraries-for-ts}
+        Another part of Tivoli solution\,--\,Netcool Network Management is capable
+        of predicting events. There is also another predictive analysis in Tivoli Monitoring
+        module\footnote{Available at
+        \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}.}
+        In the online document there is mentioned that predictive engine does not work on real time streams of data. Tivoli
+        is definitely big solution and in order to get real predictive capabilities it would require to contact IBM
+        support.
+
+    %%%%%%%%
+    \section{Libraries For Time Series Forecasting} \label{sec:libraries-for-ts}
     In Java there is only one publicly available library for time series modelling. The library is called
     OpenForecast\footnote{Available at \url{http://www.stevengould.org/software/openforecast/index.shtml}.}. It contains
     models like na\"{i}ve, linear regression and exponential smoothings. Whereas the library is open source, code
     was reviewed and tested. Some assumptions about the implementation were made. The parameters of some models are
     not estimated correctly. For example in linear regression slope and intercept are not estimated by minimizing
-    sum of squared error.
+    sum of squared errors.
 
     The library provides nice feature called automatic forecaster which selects the best model for given
     time series, however the code produces null pointer exception. The bug was identified but the library is no any more
     maintained.
 
     Performance of the library was also tested. Table \ref{tab:open-forecast-perf} contains execution times of
-    simple, double and triple exponential smoothing models. The tested time series is generated sine function of
-    length 200 observations. The result is compared against execution times of R's function \texttt{ets} from
-    \texttt{forecast} package.
+    optimizers for simple, double and triple exponential smoothing models. The tested time series is generated sine
+    function of length 200 observations. The result is compared against execution times of R's function \texttt{ets}
+    from \texttt{forecast} package.
 
     \begin{table}[h]
         \begin{center}
@@ -608,23 +652,24 @@ if some libraries can be used in the implementation.
     real time environment.
 
     Another possibility is to directly use R implementation. There are various libraries\footnote{The most widely used:
-    RCaller and JRI}
-    which allow executing R code from Java, however it requires installed R system in the target environment. Other
-    possible solution is to use Rengin\footnote{Available at \url{http://www.renjin.org/}}\,--\,JVM interpreter for R.
-    However \texttt{forecast} package depends on other package which allow native C++ invocation for optimized
-    computations. Therefore package \texttt{forecast} can not be used with Rengin.
+    RCaller and JRI.} which allow executing R code from Java, however it requires installed R system in the target
+    environment. Other possible solution is to use Rengin\footnote{Available at \url{http://www.renjin.org/}}\,--\,
+    JVM  interpreter for R. However \texttt{forecast} package depends on other package which allows invocation of native
+    C++ code for optimized computations. Therefore package \texttt{forecast} can not be used with Rengin.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Design and Implementation} \label{design-impl}
+\chapter{Design and Implementation} \label{chap:design-im[pl}
 The module for an alert prediction is named Hawkular Data Mining. Source code is versioned in Git and
 hosted on Github\footnote{Available at \url{https://github.com/hawkular/hawkular-datamining}.} under
 license Apache version 2.0.
 
 The project is split into several Maven artifacts. This approach decomposes problem into smaller parts
 which have dedicated functionality and can be easy reused in other projects. It also ensures that
-third party dependencies are loaded only for certain artifacts where are needed. A figure \ref{appen:maven-deps}
-shows dependency tree of \texttt{datamining-dist}, which is the top level artifact. The most important modules are
-listed in \ref{tab:datamining-modules}. All ids of the listed artifacts have prefix \texttt{hawkular-datamining}.
+third party dependencies are loaded only for certain artifacts where are needed.
+
+A figure \ref{appen:maven-deps} shows dependency tree of \texttt{datamining-dist}, which is the top level artifact.
+The most important modules are listed in \ref{tab:datamining-modules}. All ids of the listed artifacts have prefix
+\texttt{hawkular-datamining}.
 
 \begin{table}[h]
     \begin{center}
@@ -643,8 +688,8 @@ listed in \ref{tab:datamining-modules}. All ids of the listed artifacts have pre
     \end{center}
 \end{table}
 
-In the following sections the most important parts of the implementation are described. Described are used data
-structures and algorithms.
+In the following sections the most important parts of the implementation are described. This text work focuse on
+design of data structures, interaction between modules and algorithms.
 
     %%%%%%%%
     \section{Forecast Package}
@@ -654,10 +699,12 @@ structures and algorithms.
 
     The core data structures from \texttt{datamining-forecast} package are interfaces of time series models
     \ref{alg:models} and forecasters. This two interfaces are related but not the same. Each time series model should
-     be capable of
-    predicting and learning. The main difference between forecaster and time series model is that forecaster
-    is designed for online learning and it autonomously selects the most appropriate time series model. Time series
-    models by default are not designed for online learning, however it can be accomplished with a wrapper class.
+    be capable of predicting and learning. Models also collect initialization and running statistics so it is possible
+    to make assumptions of the forecasting accuracy.
+
+    The main difference between forecaster and time series model is that forecaster is designed for online learning
+    and it autonomously selects the most appropriate time series model. Time series models by default are not
+    designed for online learning, however it can be accomplished with a wrapper class.
 
     Metric in the Data Mining is represented as structure \texttt{MetricContex} which contains metadata like
     collection interval, metric id and tenant id. Collection interval is necessary for calculating timestamps of
@@ -678,27 +725,27 @@ interface TimeSeriesModel {
     List of implemented models, statistical and utility classes for time series manipulation:
 
     \begin{multicols}{2}
-    \begin{itemize}
-        \item Simple ex. smoothing
-        \item Double ex. smoothing
-        \item Triple ex. smoothing
-        \item Weighted moving average
-        \item Automatic forecaster
-        \item Augmented Dickey\,--\,Fuller test
-        \item Time series decomposition
-        \item Autocorrelation function
-        \item Time series lagging
-        \item Time series differencing
-        \item Automatic period identification
-    \end{itemize}
+        \begin{itemize}
+            \item Simple ex. smoothing
+            \item Double ex. smoothing
+            \item Triple ex. smoothing
+            \item Weighted moving average
+            \item Automatic forecaster
+            \item Augmented Dickey\,--\,Fuller test
+            \item Time series decomposition
+            \item Autocorrelation function
+            \item Time series lagging
+            \item Time series differencing
+            \item Automatic period identification
+        \end{itemize}
     \end{multicols}
 
         %%%%%%%%
         \subsection{Automatic Forecaster}
-        The most important class in Data Mining is \texttt{AutomaticForecaster}. This class autonomously
-        decides which time series model should be used for modelled time series. Currently it decides from
+        One of the most important forecasting classes in Data Mining is \\\texttt{AutomaticForecaster}. This class
+        autonomously decides which time series model should be used for modelled time series. Currently it decides from
         three implemented models: simple, double and triple exponential smoothing. Other models which implement
-        interface \texttt{TimeSeriesModel} can be easy added.
+        interface \\\texttt{TimeSeriesModel} can be easy added.
 
         The most importantly this class is capable of dealing with concept drift. It holds circular buffer of historical
         metrics and if statistical properties of the underlying time series changes content of the buffer is used for
@@ -706,25 +753,27 @@ interface TimeSeriesModel {
 
         The strategy when a new model should be selected is configurable. System currently
         supports two strategies. The first strategy periodically each $n$ observations selects new model.
-        The Second one is more sophisticated and it selects a new model only when the error produced on learning data
-        exceeds by $x\%$ error calculated on learning points when model was selected.
+        The second one is more sophisticated and it selects a new model only when the error produced on learning data
+        exceeds by $x\%$ error calculated on learning points when model was initlized.
 
-        Model selection is based on information criterion from section \ref{model-selection}. Automatic forecaster in
-        successive steps calls optimizers of given models and then selects the best with the lowest information criterion.
-        Used criterion is configurable for each forecaster.
+        Model selection is based on information criterion from section \ref{sec:model-quality}. Automatic forecaster in
+        successive steps calls optimizers of given models and then selects the best with the lowest information
+        criterion. Used criterion is configurable for each forecaster.
 
         %%%%%%%%
         \subsection{Model Optimizers}
         Model optimizers are the most important part of the models implementation. If the model parameters are not
-        estimated correctly model would produce high forecasting error. The idea behind optimization is to find such
+        estimated correctly model would produce high forecasting error.
+
+        The idea behind optimization is to find such
         parameters best describes training data \cite{hyndman-state-space}. Optimization criterion can be: mean
         squared error, mean absolute error and likelihood. These criterion basically computes errors produced by ahead
-        predictions. The number of prediction steps depends on the forecaster objective. The most common is to use
+        predictions. The number of prediction steps depends on the forecaster's objective. The most common is to use
         only one step ahead. Data Mining currently supports only MSE criterion but others can be easy added.
 
-        The criterion is returned from model's objective function. This objective function is passed to non-linear
+        The criterion is returned from model's objective function. This objective function is then passed to non-linear
         optimization algorithm from Apache Math Commons. This library implements several optimization algorithms:
-        Nelder-Mead simplex, multi-directional and bound optimization by quadratic approximation (BOBYQA). These
+        Nelder-Mead simplex, multi-directional simplex and bound optimization by quadratic approximation (BOBYQA). These
         algorithms
         does not need computed derivatives of the cost function.
 
@@ -734,7 +783,7 @@ interface TimeSeriesModel {
         Table \ref{tab:open-forecast-perf} contains comparison of optimizers execution times from \texttt{OpenForecast}
         and R implementation. This section adds execution time of Data Mining implementation. Complete execution times are
         listed in \ref{tab:datamining-perf}. Execution times of Data Mining's optimizers are in some cases faster than R.
-        Quality of the produced forecasts is discussed in the chapter \ref{evaluation}.
+        Quality of the produced forecasts is discussed in the chapter \ref{chap:evaluation}.
 
         \begin{table}[h]
             \begin{center}
@@ -772,10 +821,14 @@ interface SubscriptionManager {
      }
     \end{lstlisting}
 
-    For subscribing it is necessary specify the owner of the prediction configuration. It was specially added for
-    integration with Ineventory. It is more described in section \ref{dist}. \texttt{Subscription}. Currently  only
-    time series forecasting is available. This object holds an instance of an automatic forecaster. Class diagram  of
-    the most important classes from \texttt{forecast} and \texttt{api} is in \ref{appen:class-diagram}.
+    For subscribing it is necessary to specify the owner of the prediction configuration. It was specially added for
+    integration with Ineventory. It is more described in section \ref{sec:dist}.
+
+    Object \texttt{Subscription} holds instance of \texttt{AutomaticForecaster} and it could also hold another
+    data analysis objects. Its role is to delegates calls to the business logic objects.
+
+    Class diagram  of the most important classes from \texttt{forecast} and \texttt{api} is in
+    \ref{appen:class-diagram}.
 
     Some of the service classes like \texttt{SubscriptionManager} are used in several other classes and also multiple
     implementation could exists (in memory or database implementation). Therefore dependency injection
@@ -785,14 +838,15 @@ interface SubscriptionManager {
 
     %%%%%%%%
     \section{REST Package}
-    Package \texttt{rest} contains implementation of REST services. Implementation is compatible with standard JAX-RS.
+    Package \texttt{rest} contains implementation of REST services provided by Data Mining. Implementation is
+    compatible with standard JAX-RS.
 
     Data Mining REST API is designed to operate on the forecasting engine. When the module is deployed into Hawkular
     main interaction with Data Mining goes through Inventory REST API and metric data are collected from JMS topic.
-    However, this is not limited and Data Mining offers alternative REST endpoints which can be used in standalone
-    deployment.
+    However, this is not limited and Data Mining offers alternative REST endpoints which can be used for
+    example in standalone deployment.
 
-    REST API provide following capabilities:
+    REST API provides following capabilities:
 
     \begin{itemize}
         \item Operate on subscriptions\,--\,enable and disable prediction.
@@ -806,15 +860,15 @@ interface SubscriptionManager {
     \url{http://www.hawkular.org/}.}. This documentation is automatically generated using Swagger framework.
 
     %%%%%%%%
-    \section{Distribution Package\,--\,Integration into Hawkular} \label{dist}
+    \section{Distribution Package\,--\,Integration into Hawkular} \label{sec:dist}
     As it was mentioned before the build produces two web archives, one for standalone usage and another for
     deployment into Hawkular. The second web archive adds extra functionality for interacting with other Hawkular
     components. Hawkular is packaged as a modified Wildfly server with several Hawkular components deployed.
 
     In Hawkular all entities are stored in Inventory, therefore Data Mining uses this module
     for querying metric definitions and it adds some extra attributes necessary for predictions. Another module
-    which is used by Data Mining is Hawkular Metrics. It is a metric storage based on hybrid key-value
-    database Apache Cassandra. Diagram \ref{img:hawkular-interaction} shows Data Mining integration into Hawkular.
+    which is used by Data Mining is Hawkular Metrics. Diagram \ref{img:hawkular-interaction} shows Data Mining
+    integration into Hawkular.
 
     \begin{figure}[H]
         \begin{center}
@@ -875,13 +929,14 @@ interface SubscriptionManager {
     JMS or REST calls.
 
     Diagram \ref{img:sequence-incoming-data} shows complete data flow from agent to alerts evaluation engine.
-    Metric data is sent by agent to Metrics where are stored to database. Then it is sent to JMS topic
+    First metric data is sent by agent to Metrics where are stored to database. Then it is sent to JMS topic
     and consumed by Alerts and Data Mining. In parallel Alerts evaluates alerts criteria and Data Mining computes
-    predictions. After computation predicted data are sent to the same JMS topic and consumed by Alerts.
+    predictions. After computation the predicted data are sent back to the same JMS topic and consumed by Alerts.
+    At this point an alert of predicted metrics can be triggered.
 
     Data Mining changes \texttt{id} of predicted points in order to be able to distinguish original time series from
     predicted. For predicted metrics Alerts can evaluate the same conditions as for original time series or use
-    different ones. At this point an alert of predicted metrics can be triggered.
+    different ones, more in \ref{sec:alerts-conditions}.
 
     \begin{figure}[H]
         \begin{center}
@@ -892,15 +947,31 @@ interface SubscriptionManager {
     \end{figure}
 
         %%%%%%%%
+        \subsection{Alerts and Conditions} \label{sec:alerts-conditions}
+        In this section is briefly described how the alerting system works. Alerts is a separate module
+        which is responsible for firing alerts based on defined conditions. As it is depicted in diagram
+        \ref{img:sequence-incoming-data} Alerts listens on the JMS topic and if conditions for given metric are
+        posityvely evaluated an alert is fired.
+
+        Though Alerts data model is little bit more complicated. For each unique metric id can be defined multiple
+        conditions. These conditions are evaluated for every received metric data point on the bus. Conditions are
+        grouped under a trigger. If the result of evaluation is possitive than the tigger triggers an action. This
+        action can be for instance send an email, sms or perform a webhook\dots
+
+        Triggers can be grouped which facilitates creation of the similar triggers. Particulary this can be used for
+        creating trigger for predictive metrics. If there is a trigger defined for the original metric it can be
+        duplicated and used on predicted values of that metric. If necessary the conditions can be changed in
+        order to not trigger an alert if the predictions are not very accurate. For this can be used trigger dampening.
+        So for the trigger which operates on predicted metrics dampening can be set as follows: \emph{``fire an alert if
+        $X$ consecutive evaluations of conditions are positive``}.
+
+        %%%%%%%%
         \subsection{Hawkular UI}
-        In Hawkular predictive charts are located in Metric explorer tab. In the figure \ref{img:hawkular-explorer}
+        Predictive charts in Hawkular are located in Metric explorer tab. In the figure \ref{img:hawkular-explorer}
         is showed predictive chart for metric accumulated garbage collection duration. In this case automatic
-        forecaster decides to use seasonal model of some automatically identified period. Note that for displaying
+        forecaster decided to use seasonal model of some automatically identified period. Note that for displaying
         original time series in the chart buckets were used, so the periods would be more easily seen on raw data
         points.
-
-        After adding concrete chart predictions can be enabled from the UI when user increases prediction horizon input.
-        So there is no need to enable predictions by manually creating relationship in Inventory.
 
         \begin{figure}[H]
             \begin{center}
@@ -911,34 +982,19 @@ interface SubscriptionManager {
             \end{center}
         \end{figure}
 
+        After adding concrete chart predictions can be enabled by increasing prediction horizon input.
+        So there is no need to enable predictions manually by creating relationship in Inventory.
+
         Predictive charts were used from repository \texttt{hawkular-charts}. These charts are built on top of
         D3\footnote{Avalilable at \url{https://d3js.org/}.} library and encapsulated as Angular directives.
-
-        %%%%%%%%
-        \subsection{Alerts and Conditions}
-        In this section is briefly described how alerting system works. Alerts is a separate module
-        which is responsible for firing alerts based on defined conditions. As it is depicted in diagram
-        \ref{img:sequence-incoming-data} Alerts listens on the JMS topic and if conditions for given metric are
-        posityvely evaluated an alert is fired.
-
-        Though Alerts data model is little bit more complicated. For each unique metric id can definen multiple
-        conditions. These conditions are evaluated for every received metric data point on the bus. Conditions are
-        grouped under a trigger. If the result of evaluation is possitive than the tigger triggers an action. This
-        action can be for instance send an email, sms or perform a webhook.
-
-        Triggers can be grouped which facilitates creation of the similar triggers. Particulary this can be used for
-        creating trigger for predictive metrics. If there is a trigger defined for the original metric it can be
-        duplicated and used on predicted values of that metric. If necessary the conditions can be changed in
-        order to not trigger an alert if the predictions are not very accurate. For this can be used trigger dampening.
-        So for the trigger which operates on predicted metrics dampening can be set as follows: \emph{``fire an alert if
-        $X$ consecutive evaluations are positive``}.
 
     %%%%%%%%
     \section{Test Automation and Documentation}
     Core functionality of the application is covered by unit tests. Junit framework is used for this type of tests.
     Because Data Mining interacts with other applications and modules integration tests are also implemented. These
     tests are run from Maven profile which starts web server with necessary modules deployed.
-    Last type of implemented tests are end-to-end tests which calls REST endpoint of one module and expect result
+
+    The last type of implemented tests are end-to-end tests which calls REST endpoint of one module and expect result
     in call from another module. This type of tests are also executed in Maven profile with running web server.
     End-to-end tests for Data Mining project live in the main Hawkular integration repository\footnote{
     Available at \url{https://github.com/hawkular/hawkular}.}.
@@ -960,11 +1016,11 @@ interface SubscriptionManager {
 
     %%%%%%%%
     \section{Retrospective}
-    In this section is mentioned how the project was changing, what did not worked well and what could have be done
-    better.
+    In this section is mentioned how the project was changing during the implementation, what did not worked well and
+    what could have be done better.
 
     At the beginning of the project Apache Spark\footnote{Open source cluster computing framework available at
-    \url{https://spark.apache.org/}.} was used for building regression models. It's machine learning library (MLIB)
+    \url{https://spark.apache.org/}.} was used for building regression models. Its machine learning library (MLIB)
     offers several learning algorithms. In Data Mining linear regression with stochastic gradient descent was used.
     Because the gradient is stochastic produced predictions are not very robust and quickly change by significant value.
 
@@ -973,8 +1029,8 @@ interface SubscriptionManager {
     \texttt{spark-ts}\footnote{Available at \url{https://github.com/sryza/spark-timeseries}.} which contains some
     time series models but does not offer functionality of automatic model selection.
 
-    Due to problems discussed in \ref{sec:linear-regression} and lack of automatic forecaster decision was made
-    to drop Spark and directly implement exponential smoothing models.
+    Due to the problems with linear regression discussed in \ref{sec:linear-regression} and lack of automatic
+    forecaster decision was made to drop Spark and directly implement exponential smoothing models.
 
     During the implementation a lot of time was spent on integration with other modules, in particular with Inventory.
     The problem was that Inventory is developed by another party and any concrete document
@@ -983,7 +1039,7 @@ interface SubscriptionManager {
     integration interface with other modules or projects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Evaluation of Implemented Models} \label{evaluation}
+\chapter{Evaluation of Implemented Models} \label{chap:evaluation}
 %TODO
 TODO Do an example how to generate an alert.
 

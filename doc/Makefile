@@ -1,17 +1,19 @@
-# Pavol Loffay
+# Pavol Loffay, p.loffay@gmail.com
 # Makefile for building documentation (master's thesis)
+
+# make - produces thesis.pdf based on template fithesis2
+# make new - produces thesis3.pdf based on template fithesis3
 
 NAME=thesis
 NAME_FITHESIS3=thesis3
 BIB=bibliography
+
 AUXFILES=$(NAME).{pdf,ps,dvi,log,aux,toc,bbl,blg,out} missfont.log
 AUXFILES+=$(NAME_FITHESIS3).{pdf,ps,dvi,log,aux,toc,bbl,blg,out,run.xml,idx,bcx,lot,bcf,lof}
 
-IMG+=inventory architecture
+all: pdf
 
-all: convert_images pdf
-
-pdf: $(NAME).tex $(BIB).bib 
+pdf: $(NAME).tex $(BIB).bib convert_images
 	pdflatex $<
 	bibtex $(NAME)
 	pdflatex $<
@@ -30,5 +32,5 @@ convert_images:
 clean:
 	rm -rf $(AUXFILES) img/src/*.{eps,pdf}
 
-.PHONY: pdf convert_images pdf3
+.PHONY: pdf new convert_images
 
