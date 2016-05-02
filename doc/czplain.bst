@@ -87,8 +87,8 @@ FUNCTION {opt.thesis} { #0 }     % zakladni verze
 
 % -- Zacatek prvku dostupnost.
 % Tento prepinac ovlivnuje text, ktery bude zobrazen pred URL adresou.
-FUNCTION {opt.url} { "Dostupn{\'{e}} na: " }
-% FUNCTION {opt.url} { "Dostupn{\'{e}} z: " }
+% FUNCTION {opt.url} { "Dostupn{\'{e}} na: " }
+FUNCTION {opt.url} { "Dostupn{\'{e}} z: " }
 % FUNCTION {opt.url} { "Dostupn{\'{e}} na WWW: " }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2884,7 +2884,8 @@ FUNCTION {begin.bib}
 { "\makeatletter" write$ newline$
   "\@ifundefined{url}"
     "{\def\url#1{{\tt $<$#1$>$}}}" *
-    "{\DeclareUrlCommand\url{\def\UrlLeft{<} \def\UrlRight{>} \urlstyle{tt}}}" *
+    "{\DeclareUrlCommand\url{ \urlstyle{tt}}}" *
+    %"{\DeclareUrlCommand\url{\def\UrlLeft{<} \def\UrlRight{>} \urlstyle{tt}}}" *
     write$ newline$
   "\makeatother" write$ newline$
   preamble$ empty$
