@@ -5,17 +5,19 @@
 % Cross-Referencing Conventions:
 % chap: chapter
 % sec: section
-% appen: everything from appendix
+%
+% appen: everything from appendix, e.g. appen:img:foo
 %
 % eq: equation
 % img: image
 % tab: table
 % alg: algorithms
+% item: item in itemize
 %
 % example \label{img:foo-foo}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction} \label{chap:introduction}
-In driving successful business on the internet it is important to assure an application health and reliability. One
+It is important to assure an application health and reliability when driving successful business on the internet. One
 can achieve that by monitoring subjected resources and setting up clever alerting system.
 
 These features are offered in many monitoring systems, however being predictive in this area can even prevent
@@ -1040,21 +1042,263 @@ interface SubscriptionManager {
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation of Implemented Models} \label{chap:evaluation}
-%TODO
-TODO Do an example how to generate an alert.
+The evaluation of the implemented models compare the results produced by models from language R which are
+considered as equivalents to Data Mining models. The used methodology and more comprehensive description of tested
+objectives is listed in \ref{sec:methodology}.
+
+Models from language R were selected because they are widely used by forecasters all around the world and therefore
+for this work considered as referential. Concretely models are from the package
+\texttt{forecast}\footnote{Available at \url{https://cran.r-project.org/web/packages/forecast/index.html}.}.
+Function used for fitting models is \texttt{ets}. Model parameter of the function is set to \texttt{ANN}, \texttt{AAN}
+and \texttt{AAA} for simple, double and triple exponential smoothing.
 
     %%%%%%%%
-    \section{Prediction capabilities}
-    Show prediction capabilities of implemented models.
-    TODO Can I compare it against R implementation?
+    \section{Methodology} \label{sec:methodology}
+    In order to evaluate forecasting quality of the implemented models it is necessary to use well defined
+    methodology with test samples which contain broad range of patterns: white noise, monotonicity, random shocks,
+    trend and seasonality.
 
-    %%%%%%%% 
-    \section{The Most Important Metrics}
-    %TODO 
-    TODO select subset of the most important metrics and show on them predictions.
+    Most importantly methodology should not evaluate forecasting accuracy how well model
+    fits the historical data. Instead it should evaluate forecast accuracy using genuine forecasts\,--\,test 
+    how well model performs on new data \cite{otexts}. Therefore it is necessary to split time series into trainining
+    and test sample.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\chapter{Conclusion}
-TODO
+    The size of the test sample is usually 20\% of the total sample. Albeit the size of test sample depends on how
+    long the sample is and how far ahead one wants to forecast.
 
-\let\cleardoublepage\clearpage
+    Follows outline of the methodology used in this work:
+    \begin{enumerate} \label{enum:methodology}
+        \item Devide data set into training and test sample.
+        \item Set $k = size(trainingSet)$.
+        \item Train model on the training sample. And learn up to $k^{th}$ observation. \label{item:train}
+        \item Calculate n-step ahead forecast.
+        \item Compute the forecast accuracy (MSE).
+        \item Set $k = k+1$ and continue at step \ref{item:train} until $k=size(trainingSet + testSet)$.
+    \end{enumerate}
+
+    As it was described earlier time series should contain one or even combine more patterns together. Test samples
+    used in this work are depicted in appendix \ref{appen:testing-samples}. Each sample contains white noise,
+    random shocks and one or more of the following patterns: monotonicity, trend and seasonality. Names and
+    description of test samples is listed in \ref{tab:test-samples-description}.
+
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{l|l}
+                \textbf{Time Series Name} &  \textbf{Description} \\ \hline \hline
+                \texttt{wn} & Constant white noise. \\
+                \texttt{trendUpLow} & Upward trend with white noise. \\
+                \texttt{trendDownHigh} & Downward trend of high variance. \\
+                \texttt{sine} & Constant sine with white nosie. \\
+                \texttt{sineTrend} & Sine with trend and white noise. \\
+            \end{tabular}
+            \caption{Test samples description.}
+            \label{tab:test-samples-description}
+        \end{center}
+    \end{table}
+
+    The last part what figures in our methodology is training size. Let's say that one would like to forecast one hour
+    ahead. Wildfly Agent collects most of the metrics in 5 minute intervals. So the training sample should be at
+    least 48 observations and test sample 12 observations.
+
+    Interesting is also to find out if models forecasting performance changes on larger training samples. Therefore it
+    was decided to add training samples of length 100 and 200 observations.
+
+    In the following sections each model is tested using methodology \ref{enum:methodology} on test samples from
+    \ref{tab:test-samples-description} of training size 48, 100 and 200 observations.
+    Forecasting horizon is set to: 1, 6 and 12 steps ahead. Test sample is always 12 observations.
+
+    Following notation is used to identify test cases:
+    \begin{itemize}
+        \item \emph{trainSampleSize\,--\,testSampleSize (forecastingHorizon)}
+    \end{itemize}
+    So for instance 48\,--\,12 (1) denotes: training sample of size 48 observations, 12 test observations and
+    forecasting horizon 1 step ahead.
+
+    %%%%%%%%
+    \section{Results}
+    Complete test results are listed in appendix \ref{appen:chap:results}. The top value in each cell is the result
+    from R and below is the result from Data Mining. All values are in mean squared error. The table contains lot of
+    data, however work focuses on answering these two questions:
+
+    \begin{enumerate}
+        \item \emph{How well do the Data Mining models perform compared to R models?} \label{itm:question2}
+        \item \emph{Does the train sample size affect quality of the forecasts?} \label{itm:question1}
+    \end{enumerate}
+
+    The first question can be answered by calculating ratios of Data Mining MSE to R MSE. If the ratio is lower than
+    one it means that Data Mining model forecast more accurately.
+
+    From the test results can be shown how many tests cases have lower ratio or even better is to split ratios into
+    following intervals:
+    lower than 1, \interval[{1,1.01}], \interval[{1.01,1.05}], \interval[{1.05,1.10}], \interval[{1.1,1.2}],
+    and higher than 0.2. More aggregated representation is to calculate averages of these ratios for each test case and
+    plot them in chart.
+
+    In order to get the answer for the second question it is necessary to calculate averages of MSE for each row of Data
+    Mining results. For instance an average for test case 48\,--\,12 (1) represents average of results of all test
+    samples for given test case. In the next step compare the result to the average of 100\,--\,12 (1)
+    and 200\,--\,12(1) and analogously for longer forecasting horizons.
+
+    For each of these two questions is constructed chart with clear results. The results of these charts are
+    described in the following sections.
+
+        %%%%%%%%
+        \subsection{Simple exponential smoothing} \label{sec:results-simple}
+        Raw results for simple exponential smoothing are listed in a table \ref{appen:tab:simple-results}.
+        Pie chart \ref{img:results-simple-pie} shows that Data Mining simple exponential smoothing model produces
+        lower MSE than R in 38\% of all 45 test cases and 38\% tests results are equal or worse at mosts than 1 \%.
+        The test with worst result has 8 \% higher MSE than equivalent R model.
+
+        \begin{figure}[H]
+            \begin{center}
+                \begin{tikzpicture}
+                    \pie[text=legend, radius=2, color={green!100 , green!100, green!80, green!50, yellow!60}]
+                    {38/<1,
+                    16/=1,
+                    22/\interval[{1,1.01}],
+                    18/\interval[{1.01,1.05}],
+                    7/\interval[{1.05,1.10}]}
+%                    0/ \interval[{1.1,1.2}],
+%                    0/ >1.2}
+                \end{tikzpicture}
+                \caption{The proportion of Data Mining MSE / R MSE ratios split into intervals.}
+                \label{img:results-simple-pie}
+            \end{center}
+        \end{figure}
+
+        Chart \ref{img:results-simple-r} shows average ratios of Data Mining MSE to R MSE for each test case. These
+        results are finer variants of \ref{img:results-simple-pie}. It highlights that only three tests cases have in
+        average higher MSE than R and at most 2 \% higher. It also shows that for larger training samples Data Mining
+        simple exponential smoothing in average produces lower MSE than R and on shorter training set R produces lower
+        MSE than Data Mining.
+
+        \begin{figure}[H]
+            \begin{center}
+                \scalebox{0.4}{\includegraphics[angle=0]{img/src/results-simple-r.pdf}}
+                \caption{Test results for triple exponential smoothing. Comparison to reference R model.}
+                \label{img:results-simple-r}
+            \end{center}
+        \end{figure}
+
+        In the chart \ref{img:results-simple-mse} are listed Data Mining MSE averages for each test case. This chart
+        shows that the lowest average MSE are produced in test with training size of 48 observations. Therefore for
+        simple exponential smoothing it is not necessary to use longer training set in order to get lower prediction
+        error. Note that training samples contains randomly generated shocks. Therefore if more shocks are located later
+        in the time series than test cases for larger training sample can have higher MSE.
+
+        \begin{figure}[H]
+            \begin{center}
+                % width, height
+                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-simple-mse.pdf}}
+                \caption{Test results for simple exponential smoothing. Average values of MSE for all tests samples.}
+                \label{img:results-simple-mse}
+            \end{center}
+        \end{figure}
+
+        %%%%%%%%
+        \subsection{Double exponential smoothing} \label{sec:results-double}
+        Complete raw tests results for double exponential smoothing are listed in a table
+        \ref{appen:tab:double-results}. Chart \ref{img:results-double-pie} highlights that in 51 \% tests Data
+        Mining produced lower MSE than the equivalent R model. Five tests fall into the interval
+        \interval[{1.1,1.2}] and one test has higher SME than 20 \%.
+
+        Averages of MSE ratios are depicted in \ref{img:results-double-r}. The chart shows that in average the lowest
+        MSE ratios are for training set of length 48 observations. It meas that if results are compared to R in terms of
+        training size R produces higher mean square error for larger training sets.
+
+        \begin{figure}[H]
+            \begin{center}
+                \begin{tikzpicture}
+                    \pie[text=legend, radius=2, color={green!100 , green!50, yellow!50, red!60, red!80}]
+                    {51/<1,
+                    27/\interval[{1.01,1.05}],
+                    9/\interval[{1.05,1.10}],
+                    11/\interval[{1.1,1.2}],
+                    2/>1.2}
+                \end{tikzpicture}
+                \caption{The proportion of Data Mining MSE / R MSE ratios split into intervals.}
+                \label{img:results-double-pie}
+            \end{center}
+        \end{figure}
+
+        \begin{figure}[H]
+            \begin{center}
+                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-double-r.pdf}}
+                \caption{Test results for double exponential smoothing. Comparison to reference R model.}
+                \label{img:results-double-r}
+            \end{center}
+        \end{figure}
+
+        The last chart for double exponential smoothing is \ref{img:results-double-mse}.
+        It highlights that model similarly as simple exponential smoothing produces higher MSE for larger training sets.
+
+        \begin{figure}[H]
+            \begin{center}
+                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-double-mse.pdf}}
+                \caption{Test results for double exponential smoothing. Average values of MSE for all tests samples.}
+                \label{img:results-double-mse}
+            \end{center}
+        \end{figure}
+
+        %%%%%%%%
+        \subsection{Triple exponential smoothing} \label{sec:results-triple}
+        Raw tests results for triple exponential smoothing are listed in a table \ref{appen:tab:triple-results}. In
+        this case test cases can be run only on two data samples, because it does not make sense to fit seasonal
+        model on non seasonal data. Therefore only 18 test cases were performed.
+
+        During the testing it was observed that execution time of R script takes significantly more time than for other
+        exponential smoothing models. In the other hand Data Mining implementation for triple exponential smoothing
+        does not take more time compared to other exponential smoothing models. Though, this was not precisely measured
+        but only observed while running test scripts.
+
+        Pie chart \ref{img:results-triple-pie} shows that Data Mining triple exponential smoothing produces lower MSE
+        in 67 \% of all 18 tests. It is better result than for simple or double exponential smoothing. However
+        three tests produced MSE higher than 20 \%.
+
+        Averages of the ratios are showed in \ref{img:results-triple-r}. There it can be seen that 4 out of 9 tests
+        produced higher MSE. In test case 200\,--\,12 (12) on \texttt{sine} test sample R produces only 0.95 MSE, but
+        for smaller training sizes produced 4.31 and 2.26 and Data Mining 4.07, 2.15 and 2.63 (training sets of size
+        50, 100 and 200). This causes significantly higher ratio.
+
+        Overall results for averaged MSE ratios shows that Data Mining performs better than R on smaller training sets.
+
+        \begin{figure}[H]
+            \begin{center}
+                \begin{tikzpicture}
+                    \pie[text=legend, radius=2, color={green!100 , green!50, yellow!50, red!80}]
+                    {67/<1,
+                    6/\interval[{1.01,1.05}],
+                    6/\interval[{1.05,1.10}],
+%                    11/ \interval[{1.1,1.2}],
+                    22/>1.2}
+                \end{tikzpicture}
+                \caption{The proportion of Data Mining MSE / R MSE ratios split into intervals.}
+                \label{img:results-triple-pie}
+            \end{center}
+        \end{figure}
+
+        \begin{figure}[H]
+            \begin{center}
+                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-triple-r.pdf}}
+                \caption{Test results for triple exponential smoothing. Comparison to reference R model.}
+                \label{img:results-triple-r}
+            \end{center}
+        \end{figure}
+
+        Chart \ref{img:results-triple-mse} highlights that larger training size does improve forecast accuracy. It is
+        the same result as for other models.
+
+        \begin{figure}[H]
+            \begin{center}
+                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-double-mse.pdf}}
+                \caption{Test results for triple exponential smoothing. Average values of MSE for all tests samples.}
+                \label{img:results-triple-mse}
+            \end{center}
+        \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Conclusion} \label{chap:conclusion}
+%Improvements: damped model, adaptive filtering
+%evaluation could contain tests for period indentification, automatic forecaster...
+
+
