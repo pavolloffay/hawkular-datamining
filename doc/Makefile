@@ -34,6 +34,8 @@ convert_images:
 	rsvg-convert -f pdf -o img/src/results-double-r.pdf img/src/results-double-r.svg
 	rsvg-convert -f pdf -o img/src/results-triple-mse.pdf img/src/results-triple-mse.svg
 	rsvg-convert -f pdf -o img/src/results-triple-r.pdf img/src/results-triple-r.svg
+	rsvg-convert -f pdf -o img/src/results-overall-mse.pdf img/src/results-overall-mse.svg
+	rsvg-convert -f pdf -o img/src/results-overall-r.pdf img/src/results-overall-r.svg
 
 clean:
 	rm -rf $(AUXFILES) img/src/*.{eps,pdf,png}
