@@ -88,7 +88,8 @@ FUNCTION {opt.thesis} { #0 }     % zakladni verze
 % -- Zacatek prvku dostupnost.
 % Tento prepinac ovlivnuje text, ktery bude zobrazen pred URL adresou.
 % FUNCTION {opt.url} { "Dostupn{\'{e}} na: " }
-FUNCTION {opt.url} { "Dostupn{\'{e}} z: " }
+FUNCTION {opt.url} { "Available at: " }
+%FUNCTION {opt.url} { "Dostupn{\'{e}} z: " }
 % FUNCTION {opt.url} { "Dostupn{\'{e}} na WWW: " }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
