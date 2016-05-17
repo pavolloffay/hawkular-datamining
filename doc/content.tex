@@ -410,8 +410,8 @@ are past data available, quantitative forecasting methods are more suitable.
     It looks for periodically repeated significant values of ACF function. At some rate these values have to
     be decreased to zero. In the infinity ACF function converges to zero.
 
-    The algorithm as input takes only time series. If there is a unit root present differencing is applied.
-    Follows calculation of autocorrelation function of input time series and finding the index of its highest
+    The algorithm as input takes only time series. If there is a unit root present, then differencing is applied.
+    Calculation of autocorrelation function of input time series follows and finding the index of its highest
     value. Then it checks if there are significant values of ACF present at following $n*period$ indices.
     There have to be present at lease two consecutive values of ACF, so $n$ takes values from $1,2,3\dots$
 
@@ -583,9 +583,9 @@ overview of this domain.
     \section{Monitoring and Management Applications}
     There are many monitoring solutions available out there. Some of them are offered as service (SaaS) and other need
     to be deployed in customer's environment.
-        % TODO podmet
+
     The most important features for each application are highlighted altogether with information how it differs from its
-    rivals and if application offers predictive capabilities.
+    competitors and if application offers predictive capabilities.
 
         %%%%%%%%
         \subsection{New Relic}
@@ -1062,7 +1062,7 @@ interface SubscriptionManager {
 \chapter{Evaluation of Implemented Models} \label{chap:evaluation}
 Evaluation process compares predictive capabilities of the implemented models to statistics produced by similar models
 from R language. Models from R language are selected because they are widely used by forecasters all around the
-world and de facto standard for statistical science \cite{kleiber2008applied}. Therefore for this work considered
+world and de facto standard for statistical science \cite{kleiber2008applied}, therefore, for this work considered
 as referential.
 
 To be specific used models are from package
@@ -1088,7 +1088,7 @@ The used methodology and more comprehensive description of tested objectives is 
     The size of the test set is usually 20\% of the total sample. Albeit the size of test set depends on how
     long all the sample is and how far ahead one wants to forecast.
 
-    Follows outline of the methodology used in this work:
+    Outline of the methodology used in this work:
     \begin{enumerate} \label{enum:methodology}
         \item Divide data sample into training and test set.
         \item Set $k = size(trainingSet)$.
@@ -1150,8 +1150,8 @@ The used methodology and more comprehensive description of tested objectives is 
     The first question can be answered by calculating ratios of Data Mining MSE to R MSE. If the ratio is lower than
     one it means that Data Mining model forecast more accurately.
 
-    From the test results it can be shown how many tests cases have lower ratio or even better is to split ratios into
-    following intervals:
+    From the test results it can be shown how many tests cases have lower ratio or even better it is to split ratios
+    into following intervals:
     lower than 1, \interval[{1,1.01}], \interval[{1.01,1.05}], \interval[{1.05,1.10}], \interval[{1.1,1.2}]
     and higher than 1.2. More aggregated representation is to calculate averages of these ratios for each test case.
 
@@ -1162,7 +1162,6 @@ The used methodology and more comprehensive description of tested objectives is 
     error of each test case, so the average for 48\,--\,12(1) is the average of all test samples (\texttt{wn},
     \texttt{trendUpLow}\dots) \\ of given test case.
 
-    %TODO podmet?
     Chart with clear results is constructed for each of these two questions. The results of these charts are
     described in the following sections.
 
@@ -1206,7 +1205,7 @@ The used methodology and more comprehensive description of tested objectives is 
                 \label{img:results-simple-r}
             \end{center}
         \end{figure}
-        %TODO podmet
+
         Averages for each test case of Data Mining MSE are listed in Chart \ref{img:results-simple-mse}. This chart
         shows that the lowest average MSE are produced in test cases with training size of 48 observations. Therefore
         for simple exponential smoothing it is not necessary to use longer training set in order to get lower prediction
@@ -1376,8 +1375,8 @@ focuses on time series modelling. It contains simple, double and triple exponent
 use non-linear optimization algorithm for finding the best parameters with goal of minimizing prediction error.
 The library also contains several time series utility classes and statistical tests for time series analysis.
 
-Data Mining prediction engine autonomously selects the best time series model for underlying time series. The most
-importantly it is capable dealing with concept drift problem. So in production there is no need of any
+Data Mining prediction engine autonomously selects the best time series model for underlying time series. Most
+importantly, it is capable of dealing with concept drift problem. So in production there is no need of any
 analytical configuration.
 
 The last chapter benchmarks forecasting accuracy of the implemented models. It is shown that forecasts produced by
