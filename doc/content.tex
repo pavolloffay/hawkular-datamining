@@ -41,13 +41,13 @@ Hawkular competitors. Java libraries for time series forecasting are also mentio
 The fourth chapter describes implementation part of the thesis. It starts with core artifacts for time series
 forecasting and continues to building web application and integration into Hawkular.
 
-The last chapter is dedicated to the evaluation of the forecasting accuracy of the implemented solution. As a default
-implementation were chosen models from \texttt{forecast} package from language R.
+The last chapter is dedicated to the evaluation of the forecasting accuracy of the implemented solution.
+Models from \texttt{forecast} package from language R were chosen as a referential implementation.
 
     %%%%%%%%
     \section{Hawkular} \label{sec:hawkular}
     The implementation part of the master's thesis is developed as a part of an open source project
-    Hawkular\footnote{Available at \url{http://www.hawkular.org}}. Therefore the application architecture and used
+    Hawkular\footnote{Available at \url{http://www.hawkular.org}}, therefore, the application architecture and used
     technologies had to fit into the overall project design.
 
     Hawkular is middleware monitoring and management platform developed by company Red Hat and independent community
@@ -313,7 +313,7 @@ are past data available, quantitative forecasting methods are more suitable.
     computationally expensive than selecting appropriate ARIMA or exponential smoothing model \cite{ann-forecasting}.
 
     Because Hawkular forecasting engine should be capable of predicting thousands of metrics at the same time, models
-    based on neural networks would have too high computational requirements. Therefore they are not suitable for our
+    based on neural networks would have too high computational requirements, therefore, they are not suitable for our
     environment.
 
     %%%%%%%%
@@ -379,7 +379,7 @@ are past data available, quantitative forecasting methods are more suitable.
         \item \emph{ct}\,--\,for regression with an intercept and time trend
     \end{itemize}
 
-    Each of them is good for testing particular type of stationarity. For example for testing if there is trend
+    Each of them is good when testing particular type of stationarity. For example for testing if there is trend
     present in the time series \emph{c} version is the best choice.
 
     The implementation of this test fits multiple linear regression model from equation \ref{eq:adf-test} and
@@ -388,15 +388,15 @@ are past data available, quantitative forecasting methods are more suitable.
     %%%%%%%%
     \section{Seasonality Detection} \label{sec:period-detection}
     Forecasting engine in Hawkular system does not have any inside information about period of a time series being
-    modelled. Therefore automatic period identification has to be implemented. In practice it is a difficult task and
-    result often differs from correct period, specially if there is significant noise present in the series
+    modelled, therefore, automatic period identification has to be implemented. In practice it is a difficult task and
+    result often differs from correct period, especially if there is significant noise present in the series
     \cite{period-meteo}.
 
     There are several approaches how to implement automatic period identification. The most used ones are based on
     autocorrelation function (ACF) or spectral density \cite{period-hydman}. This work applies ACF method.
 
     In the following Chart \ref{img:period-acf} ACF function of sine function is shown. The period of this
-    function is seven. There are patterns repeated every seven observations and it is decreasing to zero.
+    function is seven. There are patterns repeated every seven observations and it decreases to zero.
 
     \begin{figure}[H]
         \begin{center}
