@@ -62,6 +62,9 @@
 \hyphenation{gar-bage}
 \hyphenation{re-using}
 \hyphenation{im-ple-men-ted}
+\hyphenation{auto-cor-rel-a-tion}
+\hyphenation{data-base}
+\hyphenation{bench-marked}
 
 \thesistitle{Alert Prediction in Metric Data Based on Time Series Analysis} % enter thesis title
 \thesissubtitle{Master thesis}  
@@ -90,9 +93,17 @@
 \end{ThesisThanks}
 
 \begin{ThesisAbstract}          % The abstract
-  The aim of the master's thesis is to develop a module for an open source monitoring
-  and management platform Hawkular. This module is responsible for predicting
-  alerts based on time series and providing data for predictive charts in Hawkular user interface.
+  The goal of the master's thesis is to develop a module for an open source monitoring
+  and management platform Hawkular. The module should provide real time predictive capabilities for time series data
+  being collected. Proposed solution should be computationally efficient and more importantly it should autonomously
+  select the best time series model for given metric. In other words it should work without an analyst interaction.
+
+  The master's thesis starts with time series theory and analysis of various approaches for time series forecasting. It
+  discuss which models are best for Hawkular requirements. The implementation chapter focuses on the most important
+  parts like: time series models, automatic forecasters and integration into Hawkular. The last chapter conducts
+  evaluation of the implemented models. Models are benchmarked against its alternatives from statistical language R.
+  The results show that implemented models are from the prediction accuracy perspective similar to R alternatives.
+
 \end{ThesisAbstract}
 
 \begin{ThesisKeyWords}          % The keywords

@@ -35,7 +35,7 @@ design of data structures, interaction between them and algorithms.
     %%%%%%%%
     \section{Forecast Package}
     The forecast package is time series modelling and forecasting library. It contains several time series models
-    and utility classes for time series modelling. It is designed to be easy used in any Java project. The footprint
+    and utility classes for time series modelling. It is designed to be easy used in any Java project. \\The footprint
     of the artifact is small. It depends only on Apache Math, Commons, Guava and Jboss logging.
 
     The core data structures from \texttt{datamining-forecast} package are interfaces of time series models
@@ -207,7 +207,7 @@ interface SubscriptionManager {
 
     In Hawkular all entities are stored in Inventory, therefore Data Mining uses this module
     for querying metric definitions and it adds some extra attributes necessary for predictions. Another module
-    which is used by Data Mining is Hawkular Metrics. Diagram \ref{img:hawkular-interaction} shows Data Mining
+    \\which is used by Data Mining is Hawkular Metrics. Diagram \ref{img:hawkular-interaction} shows Data Mining
     integration into Hawkular.
 
     \begin{figure}[H]
@@ -405,12 +405,12 @@ The used methodology and more comprehensive description of tested objectives is 
 
     Most importantly methodology should not evaluate forecasting accuracy how well model
     fits the historical data. Instead it should evaluate forecast accuracy using genuine forecasts\,--\,test
-    how well model performs on new data \cite{otexts}. Therefore it is necessary to split time series into training
+    how well \\model performs on new data \cite{otexts}. Therefore it is necessary to split time series into training
     and test set.
 
     The size of the test set is usually 20\% of the total sample. Albeit the size of test set depends on how
     long all the sample is and how far ahead one wants to forecast.
-
+    \newpage
     Outline of the methodology used in this work:
     \begin{enumerate} \label{enum:methodology}
         \item Divide data sample into training and test set.
@@ -523,7 +523,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-simple-r.pdf}}
+                \scalebox{0.65}[0.45]{\includegraphics[angle=0]{img/src/results-simple-r.pdf}}
                 \caption{Test results for triple exponential smoothing. Comparison to reference R model.}
                 \label{img:results-simple-r}
             \end{center}
@@ -538,7 +538,7 @@ The used methodology and more comprehensive description of tested objectives is 
         \begin{figure}[H]
             \begin{center}
                 % width, height
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-simple-mse.pdf}}
+                \scalebox{0.65}[0.44]{\includegraphics[angle=0]{img/src/results-simple-mse.pdf}}
                 \caption{Test results for simple exponential smoothing. Average values of MSE for all tests samples.}
                 \label{img:results-simple-mse}
             \end{center}
@@ -573,7 +573,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-double-r.pdf}}
+                \scalebox{0.65}[0.45]{\includegraphics[angle=0]{img/src/results-double-r.pdf}}
                 \caption{Test results for double exponential smoothing. Comparison to reference R model.}
                 \label{img:results-double-r}
             \end{center}
@@ -584,7 +584,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-double-mse.pdf}}
+                \scalebox{0.65}[0.45]{\includegraphics[angle=0]{img/src/results-double-mse.pdf}}
                 \caption{Test results for double exponential smoothing. Average values of MSE for all tests samples.}
                 \label{img:results-double-mse}
             \end{center}
@@ -633,7 +633,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-triple-r.pdf}}
+                \scalebox{0.65}[0.44]{\includegraphics[angle=0]{img/src/results-triple-r.pdf}}
                 \caption{Test results for triple exponential smoothing. Comparison to reference R model.}
                 \label{img:results-triple-r}
             \end{center}
@@ -644,7 +644,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-double-mse.pdf}}
+                \scalebox{0.65}[0.44]{\includegraphics[angle=0]{img/src/results-double-mse.pdf}}
                 \caption{Test results for triple exponential smoothing. Average values of MSE for all tests samples.}
                 \label{img:results-triple-mse}
             \end{center}
@@ -664,7 +664,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-overall-r.pdf}}
+                \scalebox{0.65}[0.45]{\includegraphics[angle=0]{img/src/results-overall-r.pdf}}
                 \caption{Aggregated test results for all models. Comparison to reference R model.}
                 \label{img:results-overall-r}
             \end{center}
@@ -677,7 +677,7 @@ The used methodology and more comprehensive description of tested objectives is 
 
         \begin{figure}[H]
             \begin{center}
-                \scalebox{0.65}[0.5]{\includegraphics[angle=0]{img/src/results-overall-mse.pdf}}
+                \scalebox{0.65}[0.45]{\includegraphics[angle=0]{img/src/results-overall-mse.pdf}}
                 \caption{Aggregated test results for all models. Average values of MSE for all tests samples.}
                 \label{img:results-overall-mse}
             \end{center}
@@ -687,11 +687,6 @@ The used methodology and more comprehensive description of tested objectives is 
 \chapter{Conclusion} \label{chap:conclusion}
 The goal of the master's thesis is to develop independent module in Java language for providing alert prediction
 capabilities for open source project Hawkular.
-
-%The thesis first describes various approaches for time series forecasting, and evaluates which methods are suitable
-%for Hawkular requirements. Follows review of existing monitoring solutions and libraries for time series modelling.
-%It is shown that any of existing libraries are not suitable for Hawkular, therefore a decision was made to implement
-%selected models.
 
 Implementation part is split into multiple artifacts with dedicated functionality. The most important module
 focuses on time series modelling. It contains simple, double and triple exponential smoothing models which
@@ -707,7 +702,6 @@ implemented models are in some cases more accurate that forecast from package \t
 in average Data Mining models can be compared to R models. In terms of execution time performance Data Mining
 models are much efficient.
 
-% TODO dobry cas? was?
 During the development of the module, Hawkular was still in development phase, therefore it was not
 possible to gather real data from production environment. This would help with tunning models for specific metrics
 for example Java heap usage.
@@ -722,4 +716,3 @@ added to the implemented models.
 As it is open source project, it would be great to attract more people into development and continue with adding new
 models and features for time series analysis, because there is no widely used and maintained library for this purpose
 in Java.
-

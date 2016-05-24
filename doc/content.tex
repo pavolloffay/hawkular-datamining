@@ -21,12 +21,12 @@ When driving successful business on the internet, it is important to assure appl
 can achieve that by monitoring subjected resources and setting up clever alerting system.
 
 These features are offered by many monitoring systems, however being predictive in this area can even prevent
-undesirable states and most importantly gives administrators more time to react to such events. For instance it
+undesirable states and most importantly gives administrators more time to react to such \\events. For instance it
 can decrease downtime of an application or ability to load balance workload in advance by horizontal scaling of
 targeted services.
 
 Alerting systems are sophisticated and can be composed by many conditions. This work focuses on predicting future
-metric values which are then sent as input for evaluation to alerting system.
+metric values \\which are then sent as input for evaluation to alerting system.
 
 The work starts with time series theory by describing various approaches for time series modelling and forecasting.
 The chapter describes models which are used within the work, could be used or explains why the decision was made to
@@ -256,7 +256,7 @@ are past data available, quantitative forecasting methods are more suitable.
     %%%%%%%%
     \section{Box\,--\,Jenkins Methodology (ARIMA)} \label{sec:arima}
     Models from Box\,--\,Jenkins methodology are the most widely used in time series analysis for econometric data.
-    This methodology is based on analysis of autocorrelation (ACF) and partial autocorrelation (PACF) functions.
+    This methodology is based on analysis of autocorrelation (ACF) and partial autocorrelation \\(PACF) functions.
     
     The most generic model is ARIMA(p, d, q). It combines autoregressive, integrated and moving average parts together.
     An autoregressive model (AR) consist of sum of weighed lagged observations \ref{eq:ar-model}.
@@ -285,7 +285,7 @@ are past data available, quantitative forecasting methods are more suitable.
     make a time series stationary.
 
     It is important to mention that models AR(p) and MA(q) are invertible. Therefore any stationary AR(p) model can
-    be written as MA($\infty$) and with some assumptions vice versa \cite{brockwell}. ARIMA model is often written
+    be written as \\MA($\infty$) and with some assumptions vice versa \cite{brockwell}. ARIMA model is often written
     with backshift operator $By_t=y_{t-1}$. With this operator \\ARIMA(p, d, q) is listed in \ref{eq:arima}. On the
     left side of the equation is AR(P) process and on the right MA(q).
 
@@ -627,7 +627,7 @@ overview of this domain.
         Another part of Tivoli solution\,--\,Netcool Network Management is capable
         of predicting events. There is also another predictive analysis in Tivoli Monitoring
         module\footnote{Available at
-        \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/page/Details+for+ITPA+Predictive+Analytics+and+Non+Linear+Trending}.}.
+        \url{https://www.ibm.com/developerworks/community/wikis/home?lang=en\#/wiki/Tivoli+Monitoring/}.}.
         In the online document there it is mentioned that predictive engine does not work on real time streams of data.
         Tivoli is definitely a big solution and in order to get real predictive capabilities it would require to
         contact IBM support.
@@ -674,4 +674,3 @@ overview of this domain.
     Other possible solution is to use Rengin\footnote{Available at \url{http://www.renjin.org/}}\,--\,JVM interpreter
     for R. However \texttt{forecast} package depends on other package which invocates native C++ code for optimized
     computations. Therefore \texttt{forecast} package can not be used with Rengin.
-
